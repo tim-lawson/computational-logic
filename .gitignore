@@ -1,0 +1,10 @@
+# MacOS files
+*.DS_Store
+
+# Python
+*__pycache__
+
+# Prolexa Plus
+prolexa/prolexa.pl
+prolexa/knowledge_store.pl
+prolexa.egg-info
