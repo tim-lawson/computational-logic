@@ -55,7 +55,7 @@ proof_step_message(n(Fact), Message):-
 
 is_fact_known([Fact], SessionId) :-
   findall(R, utils:known_fact(SessionId, R), FactList),
-  try(
+  utils:try(
     (
       numbervars(Fact, 0, _),
       Fact=(H:-B),

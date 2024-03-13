@@ -51,8 +51,8 @@ handle_input(SessionId, Input, Output) :-
       handle_question(Question, SessionId, Output)
 
   ;   write_debug("trying to parse as command..."),
-      phrase(command:command(g(Command, Output)), InputList),
-      write_debug(g(Command, Output)),
+      phrase(command:command(goal(Command, Output)), InputList),
+      write_debug(goal(Command, Output)),
       call(Command) -> true
 
   ;   otherwise ->
@@ -88,12 +88,12 @@ handle_question(Question, SessionId, Output) :-
 % --- Debugging ---
 
 % Write a debug message to the console.
-write_debug(Atom) :-
+write_debug(X) :-
     % If debug outputs are enabled...
     debug_enabled(on),
     % Set the output colour to green.
     write(user_output, '\033[92m'),
-    writeln(user_output, Atom),
+    writeln(user_output, X),
     % Reset the output colour.
     write(user_output, '\033[0m'),
     flush_output(user_output).
