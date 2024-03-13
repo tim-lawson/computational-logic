@@ -45,7 +45,7 @@ property(plural, Word) --> noun(plural, Word).
 % Determiners
 determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
-determiner(plural, X => Body, X => Head, d(Head :- Body)) --> [most].
+determiner(plural, X => Body, X => Head, default(Head :- Body)) --> [most].
 
 % Exceptions
 exception(Noun, Word) --> [except], noun(Noun, Word).

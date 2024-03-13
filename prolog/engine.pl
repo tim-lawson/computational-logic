@@ -18,7 +18,7 @@ prove_question(Question, SessionId, Output) :-
         transform(Question, Clause),
         phrase(sentence:sentence(Clause), OutputList),
         atomics_to_string(OutputList, " ", Output)
-  ;   Output = 'I do not think that is true.'
+  ;   Output = 'I do not know that is true.'
   ).
 
 % A binary version that can be used in maplist/3.
@@ -35,32 +35,32 @@ prove_question(Question, Output) :-
 prove_question_tree(Question, SessionId, Output) :-
   findall(Fact, utils:known_fact(SessionId, Fact), FactList),
   (   prove_from_known_facts(Question, FactList, [], ProofList) ->
-        maplist(proof_step_message, ProofList, MessageList),
+        maplist(proof_step_message, ProofList, OutputListTemp),
         phrase(sentence:sentence_body([(Question :- true)]), Clause),
         atomic_list_concat([therefore|Clause], " ", Last),
-        append(MessageList, [Last], OutputList),
-        atomic_list_concat(OutputList, "; ", Output)
+        append(OutputListTemp, [Last], OutputList),
+        atomic_list_concat(OutputList, ", ", Output)
   ;   Output = 'I do not think that is true.'
   ).
 
 % Covert a proof step to an message.
-proof_step_message(p(_, Fact), Message):-
-  known_fact_message(Fact, Message).
+proof_step_message(proof(_, Fact), Message):-
+  known_fact_output(Fact, Message).
 
 proof_step_message(n(Fact), Message):-
-  known_fact_message([(Fact :- true)], FM),
-  atomic_list_concat(['I do not know that', FM], " ", Message).
+  known_fact_output([(Fact :- true)], FactMessage),
+  atomic_list_concat(['I do not know that', FactMessage], " ", Message).
 
 % --- Facts ---
 
 is_fact_known([Fact], SessionId) :-
-  findall(R, utils:known_fact(SessionId, R), FactList),
+  findall(Fact, utils:known_fact(SessionId, Fact), FactList1),
   utils:try(
     (
       numbervars(Fact, 0, _),
-      Fact=(H:-B),
-      engine:add_body_to_facts(B, FactList, RB2),
-      engine:prove_from_known_facts(H, RB2)
+      Fact = (Head :- Body),
+      engine:add_body_to_facts(Body, FactList1, FactList2),
+      engine:prove_from_known_facts(Head, FactList2)
     )
   ).
 
@@ -69,21 +69,22 @@ add_body_to_facts((A, B), FactList1, FactList) :-
   add_body_to_facts(A, FactList1, FactList2),
   add_body_to_facts(B, FactList2, FactList).
 
-add_body_to_facts(A, FactList1, [[(A:-true)]|FactList1]).
+add_body_to_facts(A, FactList1, [[(A :- true)]|FactList1]).
 
 % --- Meta-interpreter ---
 
 % The third argument is an accumulator for proofs.
-prove_from_known_facts(true, _FactList, ProofList, ProofList):-!.
+prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
 
-prove_from_known_facts((A, B), FactList, ProofList, Proof):-!,
+prove_from_known_facts((A, B), FactList, ProofList, Proof) :-
+  !,
   find_clause((A :- C), Fact, FactList),
   utils:concatenate_conjunctive(C, B, D),
-  prove_from_known_facts(D, FactList, [p((A, B), Fact)|ProofList], Proof).
+  prove_from_known_facts(D, FactList, [proof((A, B), Fact)|ProofList], Proof).
 
-prove_from_known_facts(A, FactList, ProofList, Proof):-
+prove_from_known_facts(A, FactList, ProofList, Proof) :-
   find_clause((A :- B), Fact, FactList),
-  prove_from_known_facts(B, FactList, [p(A, Fact)|ProofList], Proof).
+  prove_from_known_facts(B, FactList, [proof(A, Fact)|ProofList], Proof).
 
 % A version that does not construct proofs.
 prove_from_known_facts(A, FactList):-
@@ -99,7 +100,9 @@ find_clause(Clause, Fact, [_Fact|FactList]):-
   find_clause(Clause, Fact, FactList).
 
 % Transform an instantiated and possibly conjunctive query to a list of clauses.
-transform((A, B), [(A :- true)|Rest]) :- !, transform(B, Rest).
+transform((A, B), [(A :- true)|Rest]) :-
+  !,
+  transform(B, Rest).
 
 transform(A, [(A :- true)]).
 
@@ -108,21 +111,21 @@ transform(A, [(A :- true)]).
 % Find all stored facts.
 find_known_facts(Output) :-
   findall(Fact, utils:known_fact(_SessionId, Fact), FactList),
-  maplist(known_fact_message, FactList, MessageList),
-  (   MessageList = [] -> Output = "I do not know anything."
-  ;   atomic_list_concat(MessageList, ". ", Output)
+  maplist(known_fact_output, FactList, OutputList),
+  (   OutputList = [] -> Output = "I do not know anything."
+  ;   atomic_list_concat(OutputList, ". ", Output)
   ).
 
 % Find all results about a proper noun.
 find_all_results(ProperNoun, Output) :-
   findall(Question, (grammar:predicate(Predicate, 1, _Words), Question=..[Predicate, ProperNoun]), QuestionList),
   maplist(prove_question, QuestionList, Message),
-  delete(Message, "", MessageList),
-  (   MessageList = [] -> atomic_list_concat(["I do not know anything about", ProperNoun], " ", Output)
-  ;   otherwise -> atomic_list_concat(MessageList, ". ", Output)
+  delete(Message, "", OutputList),
+  (   OutputList = [] -> atomic_list_concat(["I do not know anything about", ProperNoun], " ", Output)
+  ;   otherwise -> atomic_list_concat(OutputList, ". ", Output)
   ).
 
 % Convert a stored fact to an output string.
-known_fact_message(Fact, Output):-
+known_fact_output(Fact, Output):-
   phrase(sentence:sentence_body(Fact), Sentence),
   atomics_to_string(Sentence, " ", Output).
