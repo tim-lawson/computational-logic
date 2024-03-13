@@ -3,8 +3,8 @@
 :- module(
   grammar,
   [
-    predicate/3,
     noun_singular_to_plural/2,
+    predicate/3,
     predicate_to_grammar/4,
     verb_plural_to_singular/2
   ]
@@ -16,14 +16,14 @@
 % --- Predicates ---
 
 % Nouns
-predicate(bird, 1, [n/bird]).
+predicate(bird, 1, [noun/bird]).
 
 % Words that are both adjectives and nouns
-predicate(human, 1, [a/human, n/human]).
-predicate(mortal, 1, [a/mortal, n/mortal]).
+predicate(human, 1, [adj/human, noun/human]).
+predicate(mortal, 1, [adj/mortal, noun/mortal]).
 
 % Intransitive verbs
-predicate(fly, 1, [v/fly]).
+predicate(fly, 1, [verb/fly]).
 
 % --- Vocabulary and grammar ---
 
@@ -84,26 +84,26 @@ predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal):-
 
 adjective(_, X) -->
   [Adjective],
-  { predicate_to_grammar(_Predicate, 1, a/Adjective, X) }.
+  { predicate_to_grammar(_Predicate, 1, adj/Adjective, X) }.
 
 noun(singular, X) -->
   [SingularNoun],
-  { predicate_to_grammar(_Predicate, 1, n/SingularNoun, X) }.
+  { predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X) }.
 
 noun(plural, X) -->
   [PluralNoun],
   {
-      predicate_to_grammar(_Predicate, 1, n/Noun, X),
+      predicate_to_grammar(_Predicate, 1, noun/Noun, X),
       noun_singular_to_plural(Noun, PluralNoun)
   }.
 
 intransitive_verb(singular, X) -->
   [SingularVerb],
   {
-      predicate_to_grammar(_Predicate, 1, v/Verb, X),
+      predicate_to_grammar(_Predicate, 1, verb/Verb, X),
       verb_plural_to_singular(Verb, SingularVerb)
   }.
 
 intransitive_verb(plural, X) -->
   [Verb],
-  { predicate_to_grammar(_Predicate, 1, v/Verb, X) }.
+  { predicate_to_grammar(_Predicate, 1, verb/Verb, X) }.
