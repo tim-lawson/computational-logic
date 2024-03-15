@@ -1,13 +1,18 @@
-% Need some way to specfiy a pixel without a specific colour
-% Also need a way to say "not a colour"
+% Our things
+pixel(dave).
+pixel(pixie).
 
-% pixel(Name, [Colours], [NotColours])
-pixel(dave, [red], []).
-pixel(pixie, [], [blue]).
+% Properties
+property(colour, [red, green, blue]).
 
-% Define the possible options for colour. 
-colours([red, green, blue]).
+% Knowledge
+has_property(dave, colour, [red]).
+lacks_property(pixie, colour, [blue]).
 
-what_colour_is(Name, Colour):- pixel(Name, Colour, _), length(Colour, Int), Int > 0, !.
-what_colour_is(Name, Colour):- pixel(Name, _, NotColours), colours(Options), subtract(Options, NotColours, Colour).
-
+% Disjunction
+:- discontiguous has_property/3.
+has_property(Name, Property, Values):-
+    pixel(Name),
+    property(Property, Options),
+    lacks_property(Name, Property, Negations),
+    subtract(Options, Negations, Values).
