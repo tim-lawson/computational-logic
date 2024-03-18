@@ -11,6 +11,8 @@
 ).
 
 % An infix operator that constructs a literal from a predicate and an argument.
+% `xfy` means the operator is infix and right-associative, i.e. `a => b => c` is
+% equivalent to `a => (b => c)`.
 :- op(600, xfy, ' => ').
 
 % --- Predicates ---
@@ -35,10 +37,10 @@ proper_noun(singular, charlie) --> [charlie].
 % Verb phrases
 verb_phrase(singular, Word) --> [is], property(singular, Word).
 verb_phrase(plural, Word) --> [are], property(plural, Word).
-verb_phrase(Noun, Word) --> intransitive_verb(Noun, Word).
+verb_phrase(Number, Word) --> intransitive_verb(Number, Word).
 
 % Properties
-property(Noun, Word) --> adjective(Noun, Word).
+property(Number, Word) --> adjective(Number, Word).
 property(singular, Word) --> [a], noun(singular, Word).
 property(plural, Word) --> noun(plural, Word).
 
@@ -47,13 +49,10 @@ determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 determiner(plural, X => Body, X => Head, default(Head :- Body)) --> [most].
 
-% Exceptions
-exception(Noun, Word) --> [except], noun(Noun, Word).
-
 % --- Grammatical number ---
 
 % Convert the singular form of a noun to the plural form and vice versa.
-noun_singular_to_plural(SingularNoun, PluralNoun):-
+noun_singular_to_plural(SingularNoun, PluralNoun) :-
   (
     % Irregular forms
     SingularNoun = woman -> PluralNoun = women;
@@ -63,7 +62,7 @@ noun_singular_to_plural(SingularNoun, PluralNoun):-
   ).
 
 % Convert the plural form of a verb to the singular form and vice versa.
-verb_plural_to_singular(PluralVerb, SingularVerb):-
+verb_plural_to_singular(PluralVerb, SingularVerb) :-
   (
     % Irregular forms
     PluralVerb = fly -> SingularVerb = flies;
@@ -74,7 +73,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb):-
 % --- Logic ---
 
 % Convert a predicate to a grammatical rule.
-predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal):-
+predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
   % If predicate is a unary predicate of arity 1 and...
   predicate(Predicate, 1, Words),
   % WordCategory/Word is a member of Words...
@@ -84,11 +83,15 @@ predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal):-
 
 adjective(_, X) -->
   [Adjective],
-  { predicate_to_grammar(_Predicate, 1, adj/Adjective, X) }.
+  {
+      predicate_to_grammar(_Predicate, 1, adj/Adjective, X)
+  }.
 
 noun(singular, X) -->
   [SingularNoun],
-  { predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X) }.
+  {
+      predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X)
+  }.
 
 noun(plural, X) -->
   [PluralNoun],
@@ -106,4 +109,6 @@ intransitive_verb(singular, X) -->
 
 intransitive_verb(plural, X) -->
   [Verb],
-  { predicate_to_grammar(_Predicate, 1, verb/Verb, X) }.
+  {
+      predicate_to_grammar(_Predicate, 1, verb/Verb, X)
+  }.

@@ -90,6 +90,25 @@ prove_from_known_facts(A, FactList, ProofList, Proof) :-
 prove_from_known_facts(A, FactList):-
   prove_from_known_facts(A, FactList, [], _Proof).
 
+% Handle negation.
+prove_from_known_facts(not(Goal), FactList, ProofList, Proof) :-
+  % Cut to prevent backtracking.
+  !,
+  % If the goal cannot be proven...
+  \+ prove_from_known_facts(Goal, FactList, ProofList, Proof),
+  % ...then add a proof step for negation.
+  ProofList = [proof(not(Goal), n(Goal))] .
+
+% Handle negated facts.
+prove_from_known_facts(A, FactList, ProofList, Proof) :-
+  find_clause((A :- B), Fact, FactList),
+  prove_from_known_facts(B, FactList, [proof(A, Fact)|ProofList], Proof).
+
+prove_from_known_facts(A, FactList, ProofList, Proof) :-
+  find_clause(not(A), Fact, FactList),
+  % Fact directly supports the negation.
+  ProofList = [proof(A, Fact)].
+
 % --- Utilities ---
 
 find_clause(Clause, Fact, [Fact|_FactList]):-
