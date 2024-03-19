@@ -1,19 +1,27 @@
-% Parse commands.
-
+%% command: Command parser.
+%
+% This module is parses commands and converts them into goals to be executed by the
+% engine module.
 :- module(command, [command/3]).
+
+% --- Imports ---
 
 :- use_module(engine).
 :- use_module(grammar).
 :- use_module(sentence).
 :- use_module(utils).
 
-command(goal(true, "I can reason logically.")) --> [what, can, you, do].
+% --- Command parser ---
+
+command(goal(true, "I can reason logically.")) -->
+  [what, can, you, do].
 
 command(goal(retractall(utils:known_fact(_SessionId, Fact)), "I forgot that.")) -->
   [forget],
   sentence:sentence(Fact).
 
-command(goal(retractall(utils:known_fact(_SessionId, _Fact)), "I forgot everything.")) --> [forget, everything].
+command(goal(retractall(utils:known_fact(_SessionId, _Fact)), "I forgot everything.")) -->
+  [forget, everything].
 
 command(goal(engine:find_known_facts(Output), Output)) -->
   [spill, the, beans].
