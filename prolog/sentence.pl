@@ -12,7 +12,7 @@
 
 % sentence(Sentence:list)//
 %
-% Parses a list of atoms into the head and body of a sentence.
+% The sentence//1 DCG rule parses a list of atoms into a sentence.
 %
 % @param The list of atoms.
 %
@@ -25,7 +25,7 @@ sentence_word --> [that].
 
 %% sentence_body(Sentence:list)//
 %
-% Parses a list of atoms into the body of a sentence.
+% The sentence_body//1 DCG rule parses a list of atoms into a sentence body.
 %
 % @param Sentence The list of atoms.
 %

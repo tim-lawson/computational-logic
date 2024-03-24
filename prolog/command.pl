@@ -14,14 +14,14 @@
 
 % --- Command parser ---
 
-% command(-Goal:atom, -Output:string, +Words:list)//
+%% command(-Goal:atom, -Output:string, +Words:list)//
 %
-% The command//3 predicate parses a list of atoms into a goal to be executed by the
-% engine module and stored the generated output.
+% The command//3 DCG rule parses a list of atoms into a goal to be executed by the
+% engine module and stores the generated output.
 %
 % @param -Goal The goal to execute.
 % @param -Output The generated output.
-% @param +Words The list of atoms to parse.
+% @param +Words The list of atoms.
 %
 command(goal(true, 'I can reason logically.')) -->
   [what, can, you, do].

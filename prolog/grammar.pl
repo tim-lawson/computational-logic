@@ -29,6 +29,7 @@
 % @param Arity The number of arguments the predicate takes.
 % @param Words A list of words that refer to the logical entity.
 %
+
 % Nouns.
 predicate(bird, 1, [noun/bird]).
 % Words that are both adjectives and nouns.
@@ -111,6 +112,7 @@ adjective(_, X) -->
 % @param ?Number The grammatical number.
 % @param ?Word The literal.
 %
+
 % Singular nouns.
 noun(singular, X) -->
   [SingularNoun],
@@ -133,6 +135,7 @@ noun(plural, X) -->
 % @param ?Number The grammatical number.
 % @param ?Word The literal.
 %
+
 % Singular verbs.
 intransitive_verb(singular, X) -->
   [SingularVerb],
@@ -151,10 +154,11 @@ intransitive_verb(plural, X) -->
 
 %% noun_singular_to_plural(?SingularNoun:atom, ?PluralNoun:atom)
 %
-% Convert the singular form of a noun to the plural form and vice versa.
+% The noun_singular_to_plural/2 predicate converts the singular form of a noun to the
+% plural form and vice versa.
 %
-% @param ?SingularNoun The singular form.
-% @param ?PluralNoun The plural form.
+% @param SingularNoun The singular form.
+% @param PluralNoun The plural form.
 %
 noun_singular_to_plural(SingularNoun, PluralNoun) :-
   (
@@ -167,10 +171,11 @@ noun_singular_to_plural(SingularNoun, PluralNoun) :-
 
 %% verb_plural_to_singular(?PluralVerb:atom, ?SingularVerb:atom)
 %
-% Convert the plural form of a verb to the singular form and vice versa.
+% The verb_plural_to_singular/2 predicate converts the plural form of a verb to the
+% singular form and vice versa.
 %
-% @param ?PluralVerb The plural form.
-% @param ?SingularVerb The singular form.
+% @param PluralVerb The plural form.
+% @param SingularVerb The singular form.
 %
 verb_plural_to_singular(PluralVerb, SingularVerb) :-
   (
@@ -184,7 +189,8 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 
 %% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -Literal:callable)
 %
-% Convert a predicate to a grammatical rule.
+% The predicate_to_grammar/4 predicate constructs a literal from a predicate and an
+% argument.
 %
 % @param Predicate The predicate.
 % @param Arity The number of arguments the predicate takes.

@@ -10,9 +10,9 @@
 
 % --- Question parser ---
 
-%% question(Question:list)//
+%% question(+Question:list)//
 %
-% Parses a list of atoms into the head and body of a question.
+% The question//1 DCG rule parses a list of atoms into a question.
 %
 % @param Question The list of atoms.
 %
@@ -24,7 +24,7 @@ question_word --> [].
 
 %% question_body(Question:list)//
 %
-% Parses the body of a question.
+% The question_body//1 DCG rule parses a list of atoms into the body of a question.
 %
 % @param Question The list of atoms.
 %
