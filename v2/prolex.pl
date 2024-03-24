@@ -20,7 +20,7 @@ prolex :-
   prolex.
 
 /**
- * read_input(+Input:str) is nondet
+ * read_input(+Input) is nondet
  *
  * The read_input/1 predicate reads the input character by character.
  *
@@ -33,7 +33,7 @@ read_input(WordList) :-
   read_input(CharacterCode, WordList).
 
 /**
- * read_input(+CharacterCode:int,-WordList:str) is nondet
+ * read_input(+CharacterCode,-WordList) is nondet
  *
  * The read_input/2 predicate splits the input into a list of words.
  *
@@ -58,7 +58,7 @@ read_input(CharacterCode, [Word|WordList]) :-
   read_input(CharacterCodeNext, WordList).
 
 /**
- * read_word(+CharacterCode:int, -Word:str, -CharacterCodeNext:int) is nondet
+ * read_word(+CharacterCode, -Word, -CharacterCodeNext) is nondet
  *
  * The read_word/3 predicate reads a word character by character.
  */
@@ -76,7 +76,7 @@ read_word(CharacterCode, [CharacterCode|CharacterCodeList], CharacterCodeLast) :
   read_word(CharacterCodeNext, CharacterCodeList, CharacterCodeLast).
 
 /**
- * space(+CharacterCode:int) is det
+ * space(+CharacterCode) is det
  *
  * The space/1 predicate is true if the given character code is a space.
  *
@@ -85,7 +85,7 @@ read_word(CharacterCode, [CharacterCode|CharacterCodeList], CharacterCodeLast) :
 space(32).
 
 /**
- * newline(+CharacterCode:int) is det
+ * newline(+CharacterCode) is det
  *
  * The newline/1 predicate is true if the given character code is a newline.
  *
@@ -94,7 +94,7 @@ space(32).
 newline(10).
 
 /**
- * handle_input(+Input:str, -Output) is det
+ * handle_input(+Input, -Output) is det
  *
  * The handle_input/2 predicate parses the input, determines the corresponding output,
  * and returns it.
@@ -110,14 +110,14 @@ handle_input(Input, Output) :-
   !,
   % Determine the corresponding output.
   output(Type, FreeVariables, ClausalForm, Output).
-handle_input(_Input, error("could not parse")).
+handle_input(_Input, error('could not parse')).
 
 /**
- * output(+Type:str, +FreeVariables:list, +ClausalForm, -Output) is det
+ * output(+Type, +FreeVariables:list, +ClausalForm, -Output) is det
  *
  * The output/4 predicate replies to a given input.
  *
- * @param Type The literal "question" or "assertion".
+ * @param Type The literal 'question' or 'assertion'.
  * @param FreeVariables The free variables in the input, interpreted existentially.
  * @param ClausalForm The clausal form of the input.
  * @param Output The output to return.
@@ -134,7 +134,7 @@ output(type_question, FreeVariables, (answer(Answer) :- Condition), Output) :-
     % If there are answers, they are the output.
     -> Output = answer(Answers)
     ; (
-        % Otherwise, the output is "none" or "no".
+        % Otherwise, the output is 'none' or 'no'.
         Answer = []
         -> Output = answer([none])
         ;  Output = answer([no])
@@ -142,7 +142,7 @@ output(type_question, FreeVariables, (answer(Answer) :- Condition), Output) :-
   ),
   !.
 % Otherwise, the output is an error.
-output(_Type, _FreeVariables, _ClausalForm, error("unknown type")).
+output(_Type, _FreeVariables, _ClausalForm, error('unknown type')).
 
 
 /**
@@ -153,14 +153,14 @@ output(_Type, _FreeVariables, _ClausalForm, error("unknown type")).
  * @param Output The output to print.
  */
 print_output(error(ErrorType)) :-
-  write("Error: '"),
+  write('Error: ''),
   write(ErrorType),
-  write("'."),
+  write(''.'),
   nl.
 print_output(asserted(Assertion)) :-
-  write("Asserted: '"),
+  write('Asserted: ''),
   write(Assertion),
-  write("'."),
+  write(''.'),
   nl.
 print_output(answer(Answers)) :-
   print_answers(Answers).
@@ -176,12 +176,12 @@ print_output(answer(Answers)) :-
 print_answers([Answer]) :-
   !,
   write(Answer),
-  write("."),
+  write('.'),
   nl.
 % Otherwise, print the first answer and recurse.
 print_answers([Answer|AnswerList]) :-
   write(Answer),
-  write(", "),
+  write(', '),
   print_answers(AnswerList).
 
 % --- Clausify ---
@@ -275,7 +275,7 @@ verb_phrase(Form, X^Sentence, GapInfo) -->
   dictionary:transitive_verb(Form, X^VerbPhrase),
   noun_phrase(VerbPhrase^Sentence, GapInfo).
 verb_phrase(Form, VerbPhrase, nogap) -->
-  dictionary:intransitive_verb(Form, VerbPhrase).
+  dictionaryransitive_verb(Form, VerbPhrase).
 verb_phrase(Form1, VerbPhrase2, GapInfo) -->
   dictionary:auxiliary_verb(Form1/Form2, VerbPhrase1^VerbPhrase2),
   verb_phrase(Form2, VerbPhrase1, GapInfo).

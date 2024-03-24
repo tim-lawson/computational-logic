@@ -1,10 +1,14 @@
-% Question-answering engine.
-
+%% engine: Question-answering module.
+%
+% This module provides the question-answering engine of the system.
+%
 :- module(engine, [
     prove_question/2,
     prove_question/3,
     prove_question_tree/3
   ]).
+
+% --- Imports ---
 
 :- use_module(grammar).
 :- use_module(sentence).
@@ -12,7 +16,7 @@
 
 % --- Question Answering ---
 
-%% prove_question(+Question:str, +SessionId:int, -Output:str) is det.
+%% prove_question(+Question, +SessionId, -Output)
 %
 % The prove_question/3 predicate tries to prove the question based on the known facts
 % for the session. If the question can be proved, it transforms it into a sentence and
@@ -33,12 +37,12 @@ prove_question(Question, SessionId, Output) :-
         % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
         % Transform the sentence into a string.
-        atomics_to_string(OutputList, " ", Output)
+        atomics_to_string(OutputList, ' ', Output)
   ;   % If the question cannot be proved, store a default response in the output.
       Output = 'I do not know that is true.'
   ).
 
-%% prove_question(+Question:str, -Output:str) is det.
+%% prove_question(+Question, -Output)
 %
 % The prove_question/2 predicate is a simplified version of prove_question/3 that is
 % suitable for maplist or similar operations. It retrieves all known facts, irrespective
@@ -57,12 +61,12 @@ prove_question(Question, Output) :-
         % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
         % Transform the sentence into a string.
-        atomics_to_string(OutputList, " ", Output)
+        atomics_to_string(OutputList, ' ', Output)
   ;   % If the question cannot be proved, store a default response in the output.
-      Output = ""
+      Output = ''
   ).
 
-%% prove_question_tree(+Question:str, +SessionId:int, -Output:str) is det.
+%% prove_question_tree(+Question, +SessionId, -Output)
 %
 % The prove_question_tree/3 predicate is an extended version of prove_question/3 that
 % constructs a proof tree. If the question can be proved, it transforms each step of the
@@ -82,16 +86,16 @@ prove_question_tree(Question, SessionId, Output) :-
         % Transform the last step of the proof into a sentence.
         phrase(sentence:sentence_body([(Question :- true)]), Clause),
         % Transform the clause into a sentence.
-        atomic_list_concat([therefore|Clause], " ", LastClause),
+        atomic_list_concat([therefore|Clause], ' ', LastClause),
         % Append the last step to the output.
         append(OutputListTemp, [LastClause], OutputList),
         % Transform the sentences into strings.
-        atomic_list_concat(OutputList, ", ", Output)
+        atomic_list_concat(OutputList, ', ', Output)
   ;   % If the question cannot be proved, store a default response in the output.
       Output = 'I do not think that is true.'
   ).
 
-%% proof_step_message(+Proof:term, -Message:str) is det.
+%% proof_step_message(+Proof:atom, -Message)
 %
 % The proof_step_message/2 predicate transforms a proof step into a sentence.
 %
@@ -100,7 +104,7 @@ proof_step_message(proof(_, Fact), Message):-
 
 proof_step_message(n(Fact), Message):-
   known_fact_output([(Fact :- true)], FactMessage),
-  atomic_list_concat(['I do not know that', FactMessage], " ", Message).
+  atomic_list_concat(['I do not know that', FactMessage], ' ', Message).
 
 % --- Facts ---
 
@@ -137,7 +141,7 @@ prove_from_known_facts((ConjunctA, ConjunctB), FactList, ProofList, Proof) :-
   prove_from_known_facts(D, FactList, [proof((ConjunctA, ConjunctB), Fact)|ProofList], Proof).
 
 prove_from_known_facts(QuestionA, FactList, ProofList, Proof) :-
-  % Find a clause of the form "if QuestionB then QuestionA"
+  % Find a clause of the form 'if QuestionB then QuestionA'
   find_clause((QuestionA :- QuestionB), Fact, FactList),
   % Try to prove QuestionB based on the known facts.
   prove_from_known_facts(QuestionB, FactList, [proof(QuestionA, Fact)|ProofList], Proof).
@@ -147,7 +151,7 @@ prove_from_known_facts(A, FactList):-
 
 % --- Utilities ---
 
-%% find_clause(+Clause:term, +Fact:term, +FactList:list) is det.
+%% find_clause(+Clause:atom, +Fact:atom, +FactList:list)
 %
 % The find_clause/3 predicate finds a clause in the list of facts that unifies with the
 % given clause and stores the fact in the output.
@@ -164,7 +168,7 @@ find_clause(Clause, Fact, [Fact|_FactList]):-
 find_clause(Clause, Fact, [_Fact|FactList]):-
   find_clause(Clause, Fact, FactList).
 
-%% transform(+A:term, -B:list) is det.
+%% transform(+A:atom, -B:list)
 %
 % The transform/2 predicate transforms a term into a list of clauses.
 %
@@ -180,7 +184,7 @@ transform(A, [(A :- true)]).
 
 % --- Commands ---
 
-%% find_known_facts(-Output:str) is det.
+%% find_known_facts(-Output)
 %
 % The find_known_facts/1 predicate finds all known facts and transforms them into
 % sentences.
@@ -191,12 +195,12 @@ find_known_facts(Output) :-
   % Transform each fact into a response.
   maplist(known_fact_output, FactList, OutputList),
   % If no facts are known, store a default response in the output.
-  (   OutputList = [] -> Output = "I do not know anything."
+  (   OutputList = [] -> Output = 'I do not know anything.'
   % Otherwise, store the concatenated responses in the output.
-  ;   atomic_list_concat(OutputList, ". ", Output)
+  ;   atomic_list_concat(OutputList, '. ', Output)
   ).
 
-%% find_all_results(+ProperNoun:str, -Output:str) is det.
+%% find_all_results(+ProperNoun, -Output)
 %
 % The find_all_results/2 predicate finds all known facts that have a proper noun as an
 % argument and transforms them into sentences.
@@ -218,16 +222,16 @@ find_all_results(ProperNoun, Output) :-
   % Try to prove each question in the list and store the responses.
   maplist(prove_question, QuestionList, QuestionOutputList),
   % Remove questions that could not be proved from the list.
-  delete(QuestionOutputList, "", OutputList),
+  delete(QuestionOutputList, '', OutputList),
   % If no questions could be proved, store a default response in the output.
   (   OutputList = [] ->
-        atomic_list_concat(["I do not know anything about", ProperNoun], " ", Output)
+        atomic_list_concat(['I do not know anything about', ProperNoun], ' ', Output)
   % Otherwise, store the concatenated responses in the output.
   ;   otherwise ->
-        atomic_list_concat(OutputList, ". ", Output)
+        atomic_list_concat(OutputList, '. ', Output)
   ).
 
-%% known_fact_output(+Fact:term, -Output:str) is det.
+%% known_fact_output(+Fact:atom, -Output)
 %
 % The known_fact_output/2 predicate transforms a fact into a sentence.
 %
@@ -238,4 +242,4 @@ known_fact_output(Fact, Output):-
   % Transform the fact into a sentence.
   phrase(sentence:sentence_body(Fact), Sentence),
   % Transform the sentence into a string.
-  atomics_to_string(Sentence, " ", Output).
+  atomics_to_string(Sentence, ' ', Output).
