@@ -1,10 +1,14 @@
-% Question-answering engine.
-
+%% engine: Question-answering module.
+%
+% This module provides the question-answering engine of the system.
+%
 :- module(engine, [
     prove_question/2,
     prove_question/3,
     prove_question_tree/3
   ]).
+
+% --- Imports ---
 
 :- use_module(grammar).
 :- use_module(sentence).
@@ -12,120 +16,273 @@
 
 % --- Question Answering ---
 
+%% prove_question(+Question:atom, +SessionId:integer, -Output:string)
+%
+% The prove_question/3 predicate tries to prove a question based on the known facts for
+% the session. If the question can be proved, it transforms it into a sentence and
+% stores the sentence in the output. If the question cannot be proved, it stores a
+% default response in the output.
+%
+% @param +Question: The question to prove.
+% @param +SessionId: The session identifier.
+% @param -Output: The generated output.
+%
 prove_question(Question, SessionId, Output) :-
+  % Find all known facts for the session.
   findall(Fact, utils:known_fact(SessionId, Fact), FactList),
+  % Try to prove the question based on the known facts.
   (   prove_from_known_facts(Question, FactList) ->
+        % If the question can be proved, transform it into a clause.
         transform(Question, Clause),
+        % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
-        atomics_to_string(OutputList, " ", Output)
-  ;   Output = 'I do not know that is true.'
+        % Transform the sentence into a string.
+        atomics_to_string(OutputList, ' ', Output)
+  ;   % If the question cannot be proved, store a default response in the output.
+      Output = 'I do not know that is true.'
   ).
 
-% A binary version that can be used in maplist/3.
+%% prove_question(+Question:atom, -Output:string)
+%
+% The prove_question/2 predicate is a simplified version of prove_question/3 that is
+% suitable for maplist or similar operations. It retrieves all known facts, irrespective
+% of their session, and tries to prove the question.
+%
+% @param +Question: The question to prove.
+% @param -Output: The generated output.
+%
 prove_question(Question, Output) :-
+  % Find all known facts, irrespective of their session.
   findall(Fact, utils:known_fact(_SessionId, Fact), FactList),
+  % Try to prove the question based on the known facts.
   (   prove_from_known_facts(Question, FactList) ->
+        % If the question can be proved, transform it into a clause.
         transform(Question, Clause),
+        % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
-        atomics_to_string(OutputList, " ", Output)
-  ;   Output = ""
+        % Transform the sentence into a string.
+        atomics_to_string(OutputList, ' ', Output)
+  ;   % If the question cannot be proved, store a default response in the output.
+      Output = ''
   ).
 
-% A version that constructs a proof tree.
+%% prove_question_tree(+Question:atom, +SessionId:integer, -Output:string)
+%
+% The prove_question_tree/3 predicate is an extended version of prove_question/3 that
+% constructs a proof tree. If the question can be proved, it transforms each step of the
+% proof into a sentence and stores the sentences in the output.
+%
+% @param +Question: The question to prove.
+% @param +SessionId: The session identifier.
+% @param -Output: The generated output.
+%
 prove_question_tree(Question, SessionId, Output) :-
+  % Find all known facts for the session.
   findall(Fact, utils:known_fact(SessionId, Fact), FactList),
+  % Try to prove the question based on the known facts.
   (   prove_from_known_facts(Question, FactList, [], ProofList) ->
+        % If the question can be proved, transform each step of the proof into a sentence.
         maplist(proof_step_message, ProofList, OutputListTemp),
+        % Transform the last step of the proof into a sentence.
         phrase(sentence:sentence_body([(Question :- true)]), Clause),
-        atomic_list_concat([therefore|Clause], " ", Last),
-        append(OutputListTemp, [Last], OutputList),
-        atomic_list_concat(OutputList, ", ", Output)
-  ;   Output = 'I do not think that is true.'
+        % Transform the clause into a sentence.
+        atomic_list_concat([therefore|Clause], ' ', LastClause),
+        % Append the last step to the output.
+        append(OutputListTemp, [LastClause], OutputList),
+        % Transform the sentences into strings.
+        atomic_list_concat(OutputList, ', ', Output)
+  ;   % If the question cannot be proved, store a default response in the output.
+      Output = 'I do not think that is true.'
   ).
 
-% Covert a proof step to an message.
-proof_step_message(proof(_, Fact), Message):-
-  known_fact_output(Fact, Message).
+%% proof_step_message(+Proof:atom, -Output:string)
+%
+% The proof_step_message/2 predicate transforms a proof step into an output.
+%
+% @param +Proof: The proof step.
+% @param -Output: The output generated.
+%
+proof_step_message(proof(_, Fact), Output):-
+  known_fact_output(Fact, Output).
 
-proof_step_message(n(Fact), Message):-
-  known_fact_output([(Fact :- true)], FactMessage),
-  atomic_list_concat(['I do not know that', FactMessage], " ", Message).
+proof_step_message(n(Fact), Output):-
+  known_fact_output([(Fact :- true)], FactOutput),
+  % If the
+  atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
 
+%% is_fact_known(+FactList:list, +SessionId:integer)
+%
+% The is_fact_known/2 predicate checks if a fact is known for the session.
+%
+% @param +FactList: The list of facts to check.
+% @param +SessionId: The session identifier.
+%
 is_fact_known([Fact], SessionId) :-
-  findall(Fact, utils:known_fact(SessionId, Fact), FactList1),
+  % Find all known facts for the session
+  findall(Fact, utils:known_fact(SessionId, Fact), FactListOld),
+  % Try to prove the fact based on the known facts.
   utils:try(
     (
+      % Try to unify the free variables in the fact with anything else.
       numbervars(Fact, 0, _),
+      % Construct a clause from the fact.
       Fact = (Head :- Body),
-      engine:add_body_to_facts(Body, FactList1, FactList2),
-      engine:prove_from_known_facts(Head, FactList2)
+      % Add the body of the clause to the known facts.
+      engine:add_clause_to_facts(Body, FactListOld, FactListNew),
+      % Try to prove the head of the clause based on the known facts.
+      engine:prove_from_known_facts(Head, FactListNew)
     )
   ).
 
-add_body_to_facts((A, B), FactList1, FactList) :-
+%% add_clause_to_facts(+Clause:atom, +FactListOld:list, -FactListNew:list)
+%
+% The add_clause_to_facts/3 predicate adds a clause to the list of facts.
+%
+% @param +Clause: The clause.
+% @param +FactListOld: The list of facts to update.
+% @param -FactListNew: The updated list of facts.
+%
+% Recursive case: If the clause is a conjunction, add each conjunct to the list of facts.
+add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
   !,
-  add_body_to_facts(A, FactList1, FactList2),
-  add_body_to_facts(B, FactList2, FactList).
+  % Add the first conjunct to the list of facts.
+  add_clause_to_facts(Conjunct1, FactListOld, FactListTemp),
+  % Add the second conjunct to the list of facts.
+  add_clause_to_facts(Conjunct2, FactListTemp, FactListNew).
+% Base case: If the body is not a conjunction, add it to the list of facts.
+add_clause_to_facts(Clause, FactList, [[(Clause :- true)]|FactList]).
 
-add_body_to_facts(A, FactList1, [[(A :- true)]|FactList1]).
+%% known_fact_output(+Fact:atom, -Output)
+%
+% The known_fact_output/2 predicate generates an output from a fact.
+%
+% @param +Fact: The fact.
+% @param -Output: The generated output.
+%
+known_fact_output(Fact, Output):-
+  % Transform the fact into a sentence.
+  phrase(sentence:sentence_body(Fact), Sentence),
+  % Transform the sentence into a string.
+  atomics_to_string(Sentence, ' ', Output).
+
 
 % --- Meta-interpreter ---
 
-% The third argument is an accumulator for proofs.
+%% prove_from_known_facts(+Clause:atom, +FactList:list, -ProofList:list, -Proof)
+%
+% The prove_from_known_facts/4 predicate tries to prove a clause based on a list of facts.
+% If the clause can be proved, it stores the proof in the output. The proof is a list of
+% steps, where each step is a fact that was used to prove the clause.
+%
+% @param +Clause: The clause to prove.
+% @param +FactList: The list of facts to use.
+% @param +ProofList: The accumulator for the proof.
+% @param -Proof: The generated proof.
+%
+% Base case: If the clause is true, we are done.
 prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
-
-prove_from_known_facts((A, B), FactList, ProofList, Proof) :-
+% Recursive case: If the clause is a conjunction, try to prove each conjunct.
+prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
   !,
-  find_clause((A :- C), Fact, FactList),
-  utils:concatenate_conjunctive(C, B, D),
-  prove_from_known_facts(D, FactList, [proof((A, B), Fact)|ProofList], Proof).
-
-prove_from_known_facts(A, FactList, ProofList, Proof) :-
-  find_clause((A :- B), Fact, FactList),
-  prove_from_known_facts(B, FactList, [proof(A, Fact)|ProofList], Proof).
-
-% A version that does not construct proofs.
-prove_from_known_facts(A, FactList):-
-  prove_from_known_facts(A, FactList, [], _Proof).
+  % Try to prove the first conjunct (find a clause of the form 'if Body1 then Conjunct1').
+  find_clause((Conjunct1 :- Body1), Fact, FactList),
+  % Concatenate the body of the proof with the second conjunct.
+  utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
+  % Try to prove the concatenated clauses.
+  prove_from_known_facts(
+    Body2,
+    FactList,
+    [proof((Conjunct1, Conjunct2), Fact)|ProofList],
+    Proof
+  ).
+prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+  % Try to prove the clause (find a clause of the form 'if Body then Clause').
+  find_clause((Clause :- Body), Fact, FactList),
+  % Try to prove the body of the clause.
+  prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
+prove_from_known_facts(Clause, FactList):-
+  prove_from_known_facts(Clause, FactList, [], _Proof).
 
 % --- Utilities ---
 
+%% find_clause(+Clause:atom, +Fact:atom, +FactList:list)
+%
+% The find_clause/3 predicate finds a clause in the list of facts that unifies with the
+% given clause and stores the fact in the output.
+%
+% @param +Clause: The clause to find.
+% @param +Fact: The fact to store in the output.
+% @param +FactList: The list of facts to search.
+%
+% Base case: If the clause is found, store the fact in the output.
 find_clause(Clause, Fact, [Fact|_FactList]):-
-  % Do not instantiate Fact.
+  % Avoid instantiating Fact!
   copy_term(Fact, [Clause]).
-
+% Recursive case: If the clause is not found, search the rest of the list.
 find_clause(Clause, Fact, [_Fact|FactList]):-
   find_clause(Clause, Fact, FactList).
 
-% Transform an instantiated and possibly conjunctive query to a list of clauses.
+%% transform(+A:atom, -B:list)
+%
+% The transform/2 predicate transforms a term into a list of clauses.
+%
+% @param +A: The term to transform.
+% @param -B: The list of clauses generated based on the term.
+%
+% Base case: If the term is a conjunction, transform each conjunct.
 transform((A, B), [(A :- true)|Rest]) :-
   !,
   transform(B, Rest).
-
+% Recursive case: If the term is not a conjunction, transform it into a clause.
 transform(A, [(A :- true)]).
 
 % --- Commands ---
 
-% Find all stored facts.
+%% find_known_facts(-Output)
+%
+% The find_known_facts/1 predicate finds all known facts and transforms them into
+% sentences.
+%
 find_known_facts(Output) :-
+  % Find all known facts, irrespective of their session.
   findall(Fact, utils:known_fact(_SessionId, Fact), FactList),
+  % Transform each fact into a response.
   maplist(known_fact_output, FactList, OutputList),
-  (   OutputList = [] -> Output = "I do not know anything."
-  ;   atomic_list_concat(OutputList, ". ", Output)
+  % If no facts are known, store a default response in the output.
+  (   OutputList = [] -> Output = 'I do not know anything.'
+  % Otherwise, store the concatenated responses in the output.
+  ;   atomic_list_concat(OutputList, '. ', Output)
   ).
 
-% Find all results about a proper noun.
+%% find_all_results(+ProperNoun, -Output)
+%
+% The find_all_results/2 predicate finds all known facts that have a proper noun as an
+% argument and transforms them into sentences.
+%
+% @param +ProperNoun: The proper noun to search for.
+% @param -Output: The output generated based on the search.
+%
 find_all_results(ProperNoun, Output) :-
-  findall(Question, (grammar:predicate(Predicate, 1, _Words), Question=..[Predicate, ProperNoun]), QuestionList),
-  maplist(prove_question, QuestionList, Message),
-  delete(Message, "", OutputList),
-  (   OutputList = [] -> atomic_list_concat(["I do not know anything about", ProperNoun], " ", Output)
-  ;   otherwise -> atomic_list_concat(OutputList, ". ", Output)
+  findall(
+    Question,
+    (
+      % Find all predicates that take a single argument.
+      grammar:predicate(Predicate, 1, _Words),
+      % For each predicate, construct a question with the proper noun as its argument.
+      Question=..[Predicate, ProperNoun]
+    ),
+    QuestionList
+  ),
+  % Try to prove each question in the list and store the responses.
+  maplist(prove_question, QuestionList, QuestionOutputList),
+  % Remove questions that could not be proved from the list.
+  delete(QuestionOutputList, '', OutputList),
+  % If no questions could be proved, store a default response in the output.
+  (   OutputList = [] ->
+        atomic_list_concat(['I do not know anything about', ProperNoun], ' ', Output)
+  % Otherwise, store the concatenated responses in the output.
+  ;   otherwise ->
+        atomic_list_concat(OutputList, '. ', Output)
   ).
-
-% Convert a stored fact to an output string.
-known_fact_output(Fact, Output):-
-  phrase(sentence:sentence_body(Fact), Sentence),
-  atomics_to_string(Sentence, " ", Output).

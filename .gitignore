@@ -1,10 +1,30 @@
-# MacOS files
+# LaTeX
+**/*.aux
+**/*.auxlock
+**/*.bbl
+**/*-blx.bib
+**/*.bcf
+**/*.blg
+**/*.dep
+**/*.dpth
+**/*.md5
+**/*.fdb_latexmk
+**/*.fls
+**/*.idx
+**/*.ilg
+**/*.ind
+**/*.loe
+**/*.log
+**/*.nav
+**/*.out
+**/*.run.xml
+**/*.snm
+**/*.synctex.gz
+**/*.synctex\(busy\)
+**/*.toc
+
+# macOS
 *.DS_Store
 
 # Python
 *__pycache__
-
-# Prolexa Plus
-prolexa/prolexa.pl
-prolexa/knowledge_store.pl
-prolexa.egg-info
