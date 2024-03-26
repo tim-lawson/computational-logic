@@ -1,5 +1,7 @@
-% Vocabulary and grammar.
-
+%% grammar: Vocabulary and grammar module.
+%
+% This module provides the vocabulary and grammar of the system.
+%
 :- module(
   grammar,
   [
@@ -11,49 +13,154 @@
 ).
 
 % An infix operator that constructs a literal from a predicate and an argument.
+% `xfy` means the operator is infix and right-associative, i.e. `a => b => c` is
+% equivalent to `a => (b => c)`.
 :- op(600, xfy, ' => ').
 
 % --- Predicates ---
 
-% Nouns
-predicate(bird, 1, [noun/bird]).
+%% predicate(-Predicate:atom, -Arity:integer, -Words:list)
+%
+% The predicate/3 predicate defines the logical vocabulary of the system. It relates a
+% predicate, its arity, and a list of words and syntactic categories that refer to the
+% logical entity.
+%
+% @param Predicate The predicate.
+% @param Arity The number of arguments the predicate takes.
+% @param Words A list of words that refer to the logical entity.
+%
 
-% Words that are both adjectives and nouns
+% Nouns.
+predicate(bird, 1, [noun/bird]).
+% Words that are both adjectives and nouns.
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
-
-% Intransitive verbs
+% Intransitive verbs.
 predicate(fly, 1, [verb/fly]).
 
 % --- Vocabulary and grammar ---
 
-% Proper nouns
+%% proper_noun(?Number:atom, ?Word:atom)//
+%
+% The proper_noun//2 DCG rule defines proper nouns. It relates the proper noun's
+% grammatical number, its atom, and a list of atoms that refer to it.
+%
+% @param Number The grammatical number.
+% @param Word The proper noun.
+%
 proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
 
-% Verb phrases
-verb_phrase(singular, Word) --> [is], property(singular, Word).
-verb_phrase(plural, Word) --> [are], property(plural, Word).
-verb_phrase(Noun, Word) --> intransitive_verb(Noun, Word).
+%% verb_phrase(?Number:atom, ?Word:atom)//
+%
+% The verb_phrase//2 DCG rule defines verb phrases. It relates the verb phrase's
+% grammatical number, its atom, and a list of atoms that refer to it.
+%
+% @param Number The grammatical number.
+% @param Word The adjective or verb.
+%
+verb_phrase(singular, Adjective) --> [is], property(singular, Adjective).
+verb_phrase(plural, Adjective) --> [are], property(plural, Adjective).
+verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
-% Properties
-property(Noun, Word) --> adjective(Noun, Word).
-property(singular, Word) --> [a], noun(singular, Word).
-property(plural, Word) --> noun(plural, Word).
+%% property(?Number:atom, ?Word:atom)//
+%
+% The property//2 DCG rule defines properties. It relates the property's grammatical
+% number, its atom, and a list of atoms that refer to it.
+%
+% @param Number The grammatical number.
+% @param Word The adjective or noun.
+%
+property(Number, Adjective) --> adjective(Number, Adjective).
+property(singular, Noun) --> [a], noun(singular, Noun).
+property(plural, Noun) --> noun(plural, Noun).
 
-% Determiners
+%% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
+%
+% The determiner//4 DCG rule defines determiners. It relates the determiner's
+% grammatical number, its body, its head, and a list of rules that refer to it.
+%
+% @param ?Number The grammatical number.
+% @param ?Body The body of the rule.
+% @param ?Head The head of the rule.
+% @param ?Rule The rule.
+%
 determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 determiner(plural, X => Body, X => Head, default(Head :- Body)) --> [most].
 
-% Exceptions
-exception(Noun, Word) --> [except], noun(Noun, Word).
+%% adjective(?Number:atom, ?Word:atom)//
+%
+% The adjective//2 DCG rule defines adjectives. It relates the adjective's grammatical
+% number, its atom, and a list of atoms that refer to it.
+%
+% @param ?Number The grammatical number.
+% @param ?Word The adjective.
+%
+adjective(_, X) -->
+  [Adjective],
+  {
+      predicate_to_grammar(_Predicate, 1, adj/Adjective, X)
+  }.
+
+%% noun(?Number:atom, ?Word:atom)//
+%
+% The noun//2 DCG rule defines nouns. It relates the noun's grammatical number and
+% its literal.
+%
+% @param ?Number The grammatical number.
+% @param ?Word The literal.
+%
+
+% Singular nouns.
+noun(singular, X) -->
+  [SingularNoun],
+  {
+      predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X)
+  }.
+% Plural nouns.
+noun(plural, X) -->
+  [PluralNoun],
+  {
+      predicate_to_grammar(_Predicate, 1, noun/Noun, X),
+      noun_singular_to_plural(Noun, PluralNoun)
+  }.
+
+%% intransitive_verb(?Number:atom, ?Word:atom)//
+%
+% The intransitive_verb//2 DCG rule defines intransitive verbs. It relates the verb's
+% grammatical number and its literal.
+%
+% @param ?Number The grammatical number.
+% @param ?Word The literal.
+%
+
+% Singular verbs.
+intransitive_verb(singular, X) -->
+  [SingularVerb],
+  {
+      predicate_to_grammar(_Predicate, 1, verb/Verb, X),
+      verb_plural_to_singular(Verb, SingularVerb)
+  }.
+% Plural verbs.
+intransitive_verb(plural, X) -->
+  [Verb],
+  {
+      predicate_to_grammar(_Predicate, 1, verb/Verb, X)
+  }.
 
 % --- Grammatical number ---
 
-% Convert the singular form of a noun to the plural form and vice versa.
-noun_singular_to_plural(SingularNoun, PluralNoun):-
+%% noun_singular_to_plural(?SingularNoun:atom, ?PluralNoun:atom)
+%
+% The noun_singular_to_plural/2 predicate converts the singular form of a noun to the
+% plural form and vice versa.
+%
+% @param SingularNoun The singular form.
+% @param PluralNoun The plural form.
+%
+noun_singular_to_plural(SingularNoun, PluralNoun) :-
   (
     % Irregular forms
     SingularNoun = woman -> PluralNoun = women;
@@ -62,8 +169,15 @@ noun_singular_to_plural(SingularNoun, PluralNoun):-
     atom_concat(SingularNoun, s, PluralNoun)
   ).
 
-% Convert the plural form of a verb to the singular form and vice versa.
-verb_plural_to_singular(PluralVerb, SingularVerb):-
+%% verb_plural_to_singular(?PluralVerb:atom, ?SingularVerb:atom)
+%
+% The verb_plural_to_singular/2 predicate converts the plural form of a verb to the
+% singular form and vice versa.
+%
+% @param PluralVerb The plural form.
+% @param SingularVerb The singular form.
+%
+verb_plural_to_singular(PluralVerb, SingularVerb) :-
   (
     % Irregular forms
     PluralVerb = fly -> SingularVerb = flies;
@@ -73,37 +187,20 @@ verb_plural_to_singular(PluralVerb, SingularVerb):-
 
 % --- Logic ---
 
-% Convert a predicate to a grammatical rule.
-predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal):-
+%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -Literal:callable)
+%
+% The predicate_to_grammar/4 predicate constructs a literal from a predicate and an
+% argument.
+%
+% @param Predicate The predicate.
+% @param Arity The number of arguments the predicate takes.
+% @param WordCategory The word category.
+% @param Literal The literal.
+%
+predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
   % If predicate is a unary predicate of arity 1 and...
   predicate(Predicate, 1, Words),
   % WordCategory/Word is a member of Words...
   member(WordCategory/Word, Words),
   % Construct Literal from Predicate and X.
   Literal=..[Predicate, X].
-
-adjective(_, X) -->
-  [Adjective],
-  { predicate_to_grammar(_Predicate, 1, adj/Adjective, X) }.
-
-noun(singular, X) -->
-  [SingularNoun],
-  { predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X) }.
-
-noun(plural, X) -->
-  [PluralNoun],
-  {
-      predicate_to_grammar(_Predicate, 1, noun/Noun, X),
-      noun_singular_to_plural(Noun, PluralNoun)
-  }.
-
-intransitive_verb(singular, X) -->
-  [SingularVerb],
-  {
-      predicate_to_grammar(_Predicate, 1, verb/Verb, X),
-      verb_plural_to_singular(Verb, SingularVerb)
-  }.
-
-intransitive_verb(plural, X) -->
-  [Verb],
-  { predicate_to_grammar(_Predicate, 1, verb/Verb, X) }.
