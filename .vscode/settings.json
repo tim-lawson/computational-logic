@@ -11,6 +11,9 @@
     "editor.formatOnSave": true
   },
   "black-formatter.args": ["--line-length", "88"],
+  "files.associations": {
+    "*.pl": "prolog"
+  },
   "files.exclude": {
     "**/.pytest_cache": true,
     "**/__pycache__": true
