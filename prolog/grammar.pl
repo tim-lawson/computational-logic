@@ -35,6 +35,7 @@ predicate(bird, 1, [noun/bird]).
 % Words that are both adjectives and nouns.
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
+predicate(immortal, 1, [adj/immortal, noun/immortal]).
 % Intransitive verbs.
 predicate(fly, 1, [verb/fly]).
 
@@ -86,9 +87,23 @@ property(plural, Noun) --> noun(plural, Noun).
 % @param ?Head The head of the rule.
 % @param ?Rule The rule.
 %
+
+% If the determiner is like "all", then the body of the rule implies the head.
 determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
-determiner(plural, X => Body, X => Head, default(Head :- Body)) --> [most].
+
+% If the determiner is like "most", then the body of the rule implies the head *by default*.
+determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [most].
+determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [many].
+determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [a, lot, of].
+
+% If the determiner is like "some", then the body of the rule implies the head *maybe*.
+determiner(plural, X => Body, X => Head, [maybe(Head :- Body)]) --> [some].
+determiner(plural, X => Body, X => Head, [maybe(Head :- Body)]) --> [few].
+
+% If the determiner is like "no", then the body of the rule implies the negation of the head.
+determiner(singular, X => Body, X => Head, [(Head :- \+ Body)]) --> [no].
+determiner(plural, X => Body, X => Head, [(Head :- \+ Body)]) --> [no].
 
 %% adjective(?Number:atom, ?Word:atom)//
 %
