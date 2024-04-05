@@ -107,7 +107,7 @@ proof_step_message(proof(_, Fact), Output):-
 
 proof_step_message(n(Fact), Output):-
   known_fact_output([(Fact :- true)], FactOutput),
-  % If the
+  % If the fact is not known, store a default response in the output.
   atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
@@ -144,6 +144,7 @@ is_fact_known([Fact], SessionId) :-
 % @param +FactListOld: The list of facts to update.
 % @param -FactListNew: The updated list of facts.
 %
+
 % Recursive case: If the clause is a conjunction, add each conjunct to the list of facts.
 add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
   !,
@@ -151,8 +152,9 @@ add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
   add_clause_to_facts(Conjunct1, FactListOld, FactListTemp),
   % Add the second conjunct to the list of facts.
   add_clause_to_facts(Conjunct2, FactListTemp, FactListNew).
+
 % Base case: If the body is not a conjunction, add it to the list of facts.
-add_clause_to_facts(Clause, FactList, [[(Clause :- true)]|FactList]).
+add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 
 %% known_fact_output(+Fact:atom, -Output)
 %
@@ -181,8 +183,10 @@ known_fact_output(Fact, Output):-
 % @param +ProofList: The accumulator for the proof.
 % @param -Proof: The generated proof.
 %
+
 % Base case: If the clause is true, we are done.
 prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
+
 % Recursive case: If the clause is a conjunction, try to prove each conjunct.
 prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
   !,
@@ -197,11 +201,20 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
     [proof((Conjunct1, Conjunct2), Fact)|ProofList],
     Proof
   ).
+
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
-  % Try to prove the clause (find a clause of the form 'if Body then Clause').
-  find_clause((Clause :- Body), Fact, FactList),
-  % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
+  (
+      % Try to prove using default reasoning (find a clause of the form 'if Body then
+      % Clause by default').
+      find_clause((grammar:default(Clause) :- Body), Fact, FactList),
+      % Try to prove the body of the clause.
+      prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof)
+  )
+  ;   % Try to prove the clause (find a clause of the form 'if Body then Clause').
+      find_clause((Clause :- Body), Fact, FactList),
+      % Try to prove the body of the clause.
+      prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
+
 prove_from_known_facts(Clause, FactList):-
   prove_from_known_facts(Clause, FactList, [], _Proof).
 
@@ -216,27 +229,31 @@ prove_from_known_facts(Clause, FactList):-
 % @param +Fact: The fact to store in the output.
 % @param +FactList: The list of facts to search.
 %
+
 % Base case: If the clause is found, store the fact in the output.
 find_clause(Clause, Fact, [Fact|_FactList]):-
   % Avoid instantiating Fact!
   copy_term(Fact, [Clause]).
+
 % Recursive case: If the clause is not found, search the rest of the list.
 find_clause(Clause, Fact, [_Fact|FactList]):-
   find_clause(Clause, Fact, FactList).
 
-%% transform(+A:atom, -B:list)
+%% transform(+Term:atom, -ClauseList:list)
 %
 % The transform/2 predicate transforms a term into a list of clauses.
 %
-% @param +A: The term to transform.
-% @param -B: The list of clauses generated based on the term.
+% @param +Term: The term to transform.
+% @param -ClauseList: The list of clauses generated based on the term.
 %
+
 % Base case: If the term is a conjunction, transform each conjunct.
-transform((A, B), [(A :- true)|Rest]) :-
+transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
   !,
-  transform(B, Rest).
+  transform(Term2, Rest).
+
 % Recursive case: If the term is not a conjunction, transform it into a clause.
-transform(A, [(A :- true)]).
+transform(Term, [(Term :- true)]).
 
 % --- Commands ---
 
