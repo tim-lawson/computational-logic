@@ -36,7 +36,7 @@ predicate(penguin, 1, [noun/penguin]).
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
 
-predicate(fly, 1, [noun/fly, verb/fly]).
+predicate(fly, 1, [verb/fly]).
 
 % --- Vocabulary and grammar ---
 

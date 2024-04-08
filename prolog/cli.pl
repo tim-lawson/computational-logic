@@ -41,7 +41,7 @@ cli :-
 
 %% handle_input(+Input:string, -Output:string)
 %
-% The handle_input/3 predicate is the main entry point for handling user input. It
+% The handle_input/2 predicate is the main entry point for handling user input. It
 % processes the input and generates the corresponding output. The input can be a
 % sentence, a question, or a command.
 %
@@ -88,7 +88,7 @@ preprocess_input(Input, Output) :-
 
 %% handle_sentence(+Sentence:list, -Output:string)
 %
-% The handle_sentence/3 predicate handles a sentence input. It checks if the fact is
+% The handle_sentence/2 predicate handles a sentence input. It checks if the fact is
 % already known, and if not, adds it to the known facts.
 %
 % @param +Sentence The sentence (a list of atoms).
@@ -106,7 +106,7 @@ handle_sentence(Sentence, Output) :-
 
 %% handle_question(+Question:list, -Output:string)
 %
-% The handle_question/3 predicate handles a question input. It tries to prove the
+% The handle_question/2 predicate handles a question input. It tries to prove the
 % question using the question-answering engine.
 %
 % @param +Question The question (a list of atoms).

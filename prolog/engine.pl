@@ -94,8 +94,13 @@ prove_question_tree(Question, Output) :-
 % @param +Proof: The proof step.
 % @param -Output: The output generated.
 %
-proof_step_message(proof(_, Fact, _), Output) :-
+proof_step_message(proof(_, Fact), Output) :-
   known_fact_output(Fact, Output).
+
+proof_step_message(unknown(Fact), Output):-
+  known_fact_output([(Fact :- true)], FactOutput),
+  % If the fact is not known, store a default response in the output.
+  atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
 
