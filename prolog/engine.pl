@@ -186,6 +186,11 @@ proof_step_message(unknown(Fact), Output):-
   % If the fact is not known, store a default response in the output.
   atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
+proof_step_message(unknown(Fact), Output):-
+  known_fact_output([(Fact :- true)], FactOutput),
+  % If the fact is not known, store a default response in the output.
+  atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
+
 % --- Facts ---
 
 %% is_fact_known(+FactList:list)
