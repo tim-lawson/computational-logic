@@ -27,12 +27,12 @@ command(goal(true, 'I can reason logically.')) -->
   [what, can, you, do].
 
 % Remove a known fact.
-command(goal(retractall(utils:known_fact(_SessionId, Fact)), 'I forgot that.')) -->
+command(goal(retractall(utils:known_fact(Fact)), 'I forgot that.')) -->
   [forget],
   sentence:sentence(Fact).
 
 % Remove all known facts.
-command(goal(retractall(utils:known_fact(_SessionId, _Fact)), 'I forgot everything.')) -->
+command(goal(retractall(utils:known_fact(_Fact)), 'I forgot everything.')) -->
   [forget, everything].
 
 % Output all known facts.
@@ -45,6 +45,6 @@ command(goal(engine:find_all_results(ProperNoun, Output), Output)) -->
   grammar:proper_noun(singular, ProperNoun).
 
 % Output the proof tree for a question.
-command(goal(engine:prove_question_tree(Question, _, Output), Output)) -->
+command(goal(engine:prove_question_tree(Question, Output), Output)) -->
   [explain, why],
   sentence:sentence_body([(Question :- true)]).
