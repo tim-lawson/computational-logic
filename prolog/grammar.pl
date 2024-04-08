@@ -60,9 +60,33 @@ proper_noun(singular, charlie) --> [charlie].
 % @param Number The grammatical number.
 % @param Word The adjective or verb.
 %
-verb_phrase(singular, Adjective) --> [is], property(singular, Adjective).
-verb_phrase(plural, Adjective) --> [are], property(plural, Adjective).
-verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+
+verb_phrase(singular, utils:not(Adjective)) -->
+    [is, not],
+    property(singular, Adjective).
+
+verb_phrase(singular, Adjective) -->
+    [is],
+    property(singular, Adjective).
+
+verb_phrase(plural, utils:not(Adjective)) -->
+    [are, not],
+    property(plural, Adjective).
+
+verb_phrase(plural, Adjective) -->
+    [are],
+    property(plural, Adjective).
+
+verb_phrase(singular, IntransitiveVerb) -->
+    [does, not],
+    intransitive_verb(plural, IntransitiveVerb).
+
+verb_phrase(plural, IntransitiveVerb) -->
+    [do, not],
+    intransitive_verb(plural, IntransitiveVerb).
+
+verb_phrase(Number, IntransitiveVerb) -->
+    intransitive_verb(Number, IntransitiveVerb).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -95,14 +119,6 @@ determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [a, lot, of].
-
-% If the determiner is like "some", then the body of the rule implies the head *maybe*.
-determiner(plural, X => Body, X => Head, [maybe(Head :- Body)]) --> [some].
-determiner(plural, X => Body, X => Head, [maybe(Head :- Body)]) --> [few].
-
-% If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => Head, [(Head :- \+ Body)]) --> [no].
-determiner(plural, X => Body, X => Head, [(Head :- \+ Body)]) --> [no].
 
 %% adjective(?Number:atom, ?Word:atom)//
 %
