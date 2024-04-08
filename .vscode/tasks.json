@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "args": ["latex.sh"],
+      "command": "sh",
+      "label": "pldoc",
+      "options": {
+        "cwd": "${workspaceFolder}/prolog"
+      },
+      "type": "shell"
+    }
+  ],
+  "version": "2.0.0"
+}
