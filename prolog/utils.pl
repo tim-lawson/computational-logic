@@ -23,20 +23,6 @@ debug_enabled(on).
 % Store known facts.
 :- dynamic known_fact/1.
 
-%% write_debug(+X)
-%
-% The write_debug/1 predicate writes a debug message to the console.
-%
-write_debug(X) :-
-    % If debug outputs are enabled...
-    debug_enabled(on),
-    % Set the output colour to green.
-    write(user_output, '\033[92m'),
-    writeln(user_output, X),
-    % Reset the output colour.
-    write(user_output, '\033[0m'),
-    flush_output(user_output).
-
 %% concatenate_conjunctive(+ListX, +ListY, -ListZ)
 %
 % The concatenate_conjunctive/3 predicate concatenates two lists of conjunctive literals.
@@ -58,6 +44,41 @@ concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
   % ListZ is the conjunctive concatenation of ListX and ListY.
   concatenate_conjunctive(ListX, ListY, ListZ).
 
+%% find_clause(+Clause:atom, +Fact:atom, +FactList:list)
+%
+% The find_clause/3 predicate finds a clause in the list of facts that unifies with the
+% given clause and stores the fact in the output.
+%
+% @param +Clause: The clause to find.
+% @param +Fact: The fact to store in the output.
+% @param +FactList: The list of facts to search.
+%
+
+% Base case: If the clause is found, store the fact in the output.
+find_clause(Clause, Fact, [Fact|_FactList]) :-
+  % Avoid instantiating Fact!
+  copy_term(Fact, [Clause]).
+
+% Recursive case: If the clause is not found, search the rest of the list.
+find_clause(Clause, Fact, [_Fact|FactList]) :-
+  find_clause(Clause, Fact, FactList).
+
+%% transform(+Term:atom, -ClauseList:list)
+%
+% The transform/2 predicate transforms a term into a list of clauses.
+%
+% @param +Term: The term to transform.
+% @param -ClauseList: The list of clauses generated based on the term.
+%
+
+% Base case: If the term is a conjunction, transform each conjunct.
+transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
+  !,
+  transform(Term2, Rest).
+
+% Recursive case: If the term is not a conjunction, transform it into a clause.
+transform(Term, [(Term :- true)]).
+
 %% try(+X)
 %
 % The try/1 predicate tries to prove a goal.
@@ -65,3 +86,17 @@ concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
 % @param X The goal to prove.
 %
 try(X):-not not X.
+
+%% write_debug(+X)
+%
+% The write_debug/1 predicate writes a debug message to the console.
+%
+write_debug(X) :-
+    % If debug outputs are enabled...
+    debug_enabled(on),
+    % Set the output colour to green.
+    write(user_output, '\033[92m'),
+    writeln(user_output, X),
+    % Reset the output colour.
+    write(user_output, '\033[0m'),
+    flush_output(user_output).

@@ -1,39 +1,33 @@
-\documentclass[11pt]{article}
-\usepackage{times}
-\usepackage{pldoc}
-\sloppy
-\makeindex
-
-\begin{document}
 % This LaTeX document was generated using the LaTeX backend of PlDoc,
 % The SWI-Prolog documentation system
 
 
 
-\section{cli.pl}
+\subsection{cli.pl}
 
 \label{sec:cli}
 
 \begin{description}
     \predicate{cli}{0}{}
-The \predref{cli}{0} predicate is the main entry point for the command-line interface. It reads
-a line of user input, determines the corresponding output, and prints the output. If
-the input is 'stop', the predicate terminates. Otherwise, it recurses to read the next
-line of input.
+The \predref{cli}{0} predicate is the main entry point for the command-line interface.
+It reads a line of user input, determines the corresponding output, and prints the output.
+
+If the input is `stop', the predicate terminates.
+Otherwise, it calls itself to read the next line of input.
 
     \predicate[private]{handle_input}{2}{+Input:string, -Output:string}
-The \predref{handle_input}{2} predicate is the main entry point for handling user input. It
-processes the input and generates the corresponding output. The input can be a
-sentence, a question, or a command.
+The \predref{handle_input}{2} predicate is the main entry point for handling user input.
+It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+If the input cannot be parsed, it outputs a default message.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Input} The user input. \\
-\arg{\Sminus} & \arg{Output} The generated output. \\
+\arg{\Sminus} & \arg{Output} The generated or default output. \\
 \end{arguments}
 
     \predicate[private]{preprocess_input}{2}{+Input:string, -Output:list}
-The \predref{preprocess_input}{2} predicate splits the user input into a list of words, and
-transforms each word to a lowercase atom.
+The \predref{preprocess_input}{2} predicate splits the input on whitespace into a list of words.
+It transforms each word to a lowercase atom.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Input} The user input. \\
@@ -41,8 +35,8 @@ transforms each word to a lowercase atom.
 \end{arguments}
 
     \predicate[private]{handle_sentence}{2}{+Sentence:list, -Output:string}
-The \predref{handle_sentence}{2} predicate handles a sentence input. It checks if the fact is
-already known, and if not, adds it to the known facts.
+The \predref{handle_sentence}{2} predicate handles a sentence input.
+If the fact that corresponds to the sentence is not known, it is added to the known facts.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Sentence} The sentence (a list of atoms). \\
@@ -50,8 +44,8 @@ already known, and if not, adds it to the known facts.
 \end{arguments}
 
     \predicate[private]{handle_question}{2}{+Question:list, -Output:string}
-The \predref{handle_question}{2} predicate handles a question input. It tries to prove the
-question using the question-answering engine.
+The \predref{handle_question}{2} predicate handles a question input.
+It tries to prove the question using the question-answering engine.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question} The question (a list of atoms). \\
@@ -59,7 +53,7 @@ question using the question-answering engine.
 \end{arguments}
 \end{description}
 
-\section{command.pl}
+\subsection{command.pl}
 
 \label{sec:command}
 
@@ -75,15 +69,15 @@ engine module and stores the generated output.
 \end{arguments}
 \end{description}
 
-\section{engine.pl}
+\subsection{engine.pl}
 
 \label{sec:engine}
 
 \begin{description}
     \predicate{prove_question}{2}{+Question:atom, -Output:string}
-The \predref{prove_question}{2} predicate tries to prove a question based on the known facts.
-If the question can be proved, it transforms it into a sentence and stores it in the
-output.
+The \predref{prove_question}{2} predicate tries to prove a question from the known facts.
+If the question can be proved, it is transformed into a sentence output.
+Otherwise, a default response is output.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
@@ -92,9 +86,8 @@ output.
 \end{arguments}
 
     \predicate{prove_question_list}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_list}{2} predicate is like \predref{prove_question}{2}, except it generates the
-empty string when the question cannot be proved. This is convenient to use with
-maplist, e.g. in \predref{find_all_results}{2}.
+The \predref{prove_question_list}{2} predicate is equivalent to \predref{prove_question}{2}, except it outputs the empty string when the question cannot be proved.
+This predicate is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
@@ -103,48 +96,11 @@ maplist, e.g. in \predref{find_all_results}{2}.
 \end{arguments}
 
     \predicate{prove_question_tree}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that
-constructs a proof tree. If the question can be proved, it transforms each step of the
-proof into a sentence and stores the sentences in the output.
+The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that constructs a proof tree.
+If the question can be proved, it transforms each step of the proof into a sentence and concatenates the sentences into the output.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
-\arg{\Sminus} & \arg{Output}: The generated output.
-  \\
-\end{arguments}
-
-    \predicate[private]{proof_step_message}{2}{+Proof:atom, -Output:string}
-The \predref{proof_step_message}{2} predicate transforms a proof step into an output.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Proof}: The proof step. \\
-\arg{\Sminus} & \arg{Output}: The output generated.
-  \\
-\end{arguments}
-
-    \predicate[private]{is_fact_known}{1}{+FactList:list}
-The \predref{is_fact_known}{2} predicate checks if a fact is known.
-
-\begin{arguments}
-\arg{\Splus} & \arg{FactList}: The list of facts to check.
-  \\
-\end{arguments}
-
-    \predicate[private]{add_clause_to_facts}{3}{+Clause:atom, +FactListOld:list, -FactListNew:list}
-The \predref{add_clause_to_facts}{3} predicate adds a clause to the list of facts.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Clause}: The clause. \\
-\arg{\Splus} & \arg{FactListOld}: The list of facts to update. \\
-\arg{\Sminus} & \arg{FactListNew}: The updated list of facts.
-  \\
-\end{arguments}
-
-    \predicate[private]{known_fact_output}{2}{+Fact:atom, -Output}
-The \predref{known_fact_output}{2} predicate generates an output from a fact.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Fact}: The fact. \\
 \arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
@@ -162,43 +118,61 @@ steps, where each step is a fact that was used to prove the clause.
   \\
 \end{arguments}
 
-    \predicate[private]{find_clause}{3}{+Clause:atom, +Fact:atom, +FactList:list}
-The \predref{find_clause}{3} predicate finds a clause in the list of facts that unifies with the
-given clause and stores the fact in the output.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Clause}: The clause to find. \\
-\arg{\Splus} & \arg{Fact}: The fact to store in the output. \\
-\arg{\Splus} & \arg{FactList}: The list of facts to search.
-  \\
-\end{arguments}
-
-    \predicate[private]{transform}{2}{+Term:atom, -ClauseList:list}
-The \predref{transform}{2} predicate transforms a term into a list of clauses.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Term}: The term to transform. \\
-\arg{\Sminus} & \arg{ClauseList}: The list of clauses generated based on the term.
-  \\
-\end{arguments}
-
     \predicate[private]{find_known_facts}{1}{-Output}
-The \predref{find_known_facts}{1} predicate finds all known facts and transforms them into
-sentences.
- 
-
-    \predicate[private]{find_all_results}{2}{+ProperNoun, -Output}
-The \predref{find_all_results}{2} predicate finds all known facts that have a proper noun as an
-argument and transforms them into sentences.
+The \predref{find_known_facts}{1} predicate finds all known facts and transforms them into sentences.
 
 \begin{arguments}
-\arg{\Splus} & \arg{ProperNoun}: The proper noun to search for. \\
-\arg{\Sminus} & \arg{Output}: The output generated based on the search.
+\arg{\Sminus} & \arg{Output}: The known facts or default response.
+  \\
+\end{arguments}
+
+    \predicate[private]{find_known_facts_noun}{2}{+ProperNoun, -Output}
+The \predref{find_known_facts_noun}{2} predicate finds all known facts with a proper-noun argument and transforms them into sentences.
+
+\begin{arguments}
+\arg{\Splus} & \arg{ProperNoun}: The proper noun. \\
+\arg{\Sminus} & \arg{Output}: The known facts or default response.
+  \\
+\end{arguments}
+
+    \predicate[private]{is_fact_known}{1}{+FactList:list}
+The \predref{is_fact_known}{2} predicate checks if a fact is known.
+
+\begin{arguments}
+\arg{\Splus} & \arg{FactList}: The list of facts to check.
+  \\
+\end{arguments}
+
+    \predicate[private]{add_clause_to_facts}{3}{+Clause:atom, +FactListOld:list, -FactListNew:list}
+The \predref{add_clause_to_facts}{3} predicate adds a clause to a list of facts.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause. \\
+\arg{\Splus} & \arg{FactListOld}: The list of facts to update. \\
+\arg{\Sminus} & \arg{FactListNew}: The updated list of facts.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_proof}{2}{+Proof:atom, -Output:string}
+The \predref{output_proof}{2} predicate transforms a proof step into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Proof}: The proof step. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_known_fact}{2}{+Fact:atom, -Output:string}
+The \predref{output_known_fact}{2} predicate transforms a known fact into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Fact}: The fact. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
 \end{description}
 
-\section{grammar.pl}
+\subsection{grammar.pl}
 
 \label{sec:grammar}
 
@@ -320,7 +294,7 @@ argument.
 \end{arguments}
 \end{description}
 
-\section{question.pl}
+\subsection{question.pl}
 
 \label{sec:question}
 
@@ -340,7 +314,7 @@ The \dcgref{question_body}{1} DCG rule parses a list of atoms into the body of a
 \end{arguments}
 \end{description}
 
-\section{sentence.pl}
+\subsection{sentence.pl}
 
 \label{sec:sentence}
 
@@ -355,14 +329,11 @@ The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence bo
 \end{arguments}
 \end{description}
 
-\section{utils.pl}
+\subsection{utils.pl}
 
 \label{sec:utils}
 
 \begin{description}
-    \predicate[private]{write_debug}{1}{+X}
-The \predref{write_debug}{1} predicate writes a debug message to the console.
-
     \predicate{concatenate_conjunctive}{3}{+ListX, +ListY, -ListZ}
 The \predref{concatenate_conjunctive}{3} predicate concatenates two lists of conjunctive literals.
 
@@ -374,14 +345,32 @@ The \predref{concatenate_conjunctive}{3} predicate concatenates two lists of con
 Base case: List is the conjunctive concatenation of true and List. \\
 \end{arguments}
 
+    \predicate[private]{find_clause}{3}{+Clause:atom, +Fact:atom, +FactList:list}
+The \predref{find_clause}{3} predicate finds a clause in the list of facts that unifies with the
+given clause and stores the fact in the output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause to find. \\
+\arg{\Splus} & \arg{Fact}: The fact to store in the output. \\
+\arg{\Splus} & \arg{FactList}: The list of facts to search. \\
+\end{arguments}
+
+    \predicate[private]{transform}{2}{+Term:atom, -ClauseList:list}
+The \predref{transform}{2} predicate transforms a term into a list of clauses.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Term}: The term to transform. \\
+\arg{\Sminus} & \arg{ClauseList}: The list of clauses generated based on the term. \\
+\end{arguments}
+
     \predicate{try}{1}{+X}
 The \predref{try}{1} predicate tries to prove a goal.
 
 \begin{arguments}
 \arg{X} & The goal to prove. \\
 \end{arguments}
+
+    \predicate[private]{write_debug}{1}{+X}
+The \predref{write_debug}{1} predicate writes a debug message to the console.
 \end{description}
 
-
-\printindex
-\end{document}
