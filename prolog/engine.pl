@@ -29,9 +29,9 @@ prove_question(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   % Try to prove the question based on the known facts.
-  (   prove_from_known_facts(Question, FactList) ->
+  (   prove_from_known_facts(Question, FactList, Truth) ->
         % If the question can be proved, transform it into a clause.
-        transform(Question, Clause),
+        transform(Question, Truth, Clause),
         % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
         % Transform the sentence into a string.
@@ -51,8 +51,8 @@ prove_question(Question, Output) :-
 %
 prove_question_list(Question, Output) :-
   findall(Fact, utils:known_fact(Fact), FactList),
-  (   prove_from_known_facts(Question, FactList) ->
-        transform(Question, Clause),
+  (   prove_from_known_facts(Question, FactList, Truth) ->
+        transform(Question, Truth, Clause),
         phrase(sentence:sentence(Clause), OutputList),
         atomics_to_string(OutputList, ' ', Output)
   ;   % If the question cannot be proved, store the empty string in the output.
@@ -72,11 +72,11 @@ prove_question_tree(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   % Try to prove the question based on the known facts.
-  (   prove_from_known_facts(Question, FactList, [], ProofList) ->
+  (   prove_from_known_facts(Question, FactList, [], ProofList, Truth) ->
         % If the question can be proved, transform each step of the proof into a sentence.
         maplist(proof_step_message, ProofList, OutputListTemp),
         % Transform the last step of the proof into a sentence.
-        phrase(sentence:sentence_body([(Question :- true)]), Clause),
+        phrase(sentence:sentence_body([(Question :- Truth)]), Clause),
         % Transform the clause into a sentence.
         atomic_list_concat([therefore|Clause], ' ', LastClause),
         % Append the last step to the output.
@@ -123,7 +123,7 @@ is_fact_known([Fact]) :-
       % Add the body of the clause to the known facts.
       engine:add_clause_to_facts(Body, FactListOld, FactListNew),
       % Try to prove the head of the clause based on the known facts.
-      engine:prove_from_known_facts(Head, FactListNew)
+      engine:prove_from_known_facts(Head, FactListNew, _Truth)
     )
   ).
 
@@ -173,13 +173,15 @@ known_fact_output(Fact, Output) :-
 % @param +FactList: The list of facts to use.
 % @param +ProofList: The accumulator for the proof.
 % @param -Proof: The generated proof.
+% @param -Truth: The truth value of the clause.
 %
 
 % Base case: If the clause is true, we are done.
-prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
+prove_from_known_facts(true, _FactList, ProofList, ProofList, true) :- !.
+prove_from_known_facts(false, _FactList, ProofList, ProofList, false) :- !.
 
 % Recursive case: If the clause is a conjunction, try to prove each conjunct.
-prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
+prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth) :-
   !,
   % Try to prove the first conjunct (find a clause of the form 'if Body1 then Conjunct1').
   find_clause((Conjunct1 :- Body1), Fact, FactList),
@@ -190,23 +192,30 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
     Body2,
     FactList,
     [proof((Conjunct1, Conjunct2), Fact)|ProofList],
-    Proof
+    Proof,
+    Truth
   ).
 
-prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   (
       % Try to prove using default reasoning.
       find_clause((grammar:default(Clause) :- Body), Fact, FactList),
       % Try to prove the body of the clause.
-      prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof)
+      prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth)
+  );
+  (
+      % Try to prove using negation TODO handle when Clause and Body ar85e swapped (if needed)
+      find_clause(dif(Clause,Body), Fact, FactList),
+      prove_from_known_facts(Body, FactList, [proof(dif(Clause, Body), Fact)|ProofList], Proof, NextTruth),
+      (NextTruth = true -> Truth = false; Truth = true) % flip the truth value
   )
   ;   % Try to prove the clause (find a clause of the form 'if Body then Clause').
       find_clause((Clause :- Body), Fact, FactList),
       % Try to prove the body of the clause.
-      prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
+      prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof, Truth).
 
-prove_from_known_facts(Clause, FactList) :-
-  prove_from_known_facts(Clause, FactList, [], _Proof).
+prove_from_known_facts(Clause, FactList, Truth) :-
+  prove_from_known_facts(Clause, FactList, [], _Proof, Truth).
 
 % --- Utilities ---
 
@@ -238,12 +247,12 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 %
 
 % Base case: If the term is a conjunction, transform each conjunct.
-transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
+transform((Term1, Term2), Truth, [(Term1 :- Truth)|Rest]) :-
   !,
-  transform(Term2, Rest).
+  transform(Term2, Truth, Rest).
 
 % Recursive case: If the term is not a conjunction, transform it into a clause.
-transform(Term, [(Term :- true)]).
+transform(Term, Truth, [(Term :- Truth)]).
 
 % --- Commands ---
 
