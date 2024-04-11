@@ -16,7 +16,7 @@ debug_enabled(on).
 % --- Operators ---
 
 % A prefix operator for negation, i.e. `not p`.
-:-op(900, fy, not).
+% :-op(900, fy, is_not).
 
 % --- Predicates ---
 
@@ -36,9 +36,9 @@ concatenate_conjunctive(true, List, List).
 % Single-element case: (X, List) is the conjunctive concatenation of X and List if...
 concatenate_conjunctive(X, List, (X, List)):-
   % X is not true and...
-  not X = true,
+  \+ X = true,
   % X is not a conjunction itself (prevent infinite recursion).
-  not X = (Y, Z).
+  \+ X = (Y, Z).
 % Recursive case: (X, ListZ) is the conjunctive concatenation of (X, ListX) and ListY if...
 concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
   % ListZ is the conjunctive concatenation of ListX and ListY.
@@ -85,7 +85,7 @@ transform(Term, [(Term :- true)]).
 %
 % @param X The goal to prove.
 %
-try(X):-not not X.
+try(X):- \+ \+ X.
 
 %% write_debug(+X)
 %

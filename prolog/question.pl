@@ -32,16 +32,16 @@ question_word --> [].
 % "Who VerbPhrase?" questions.
 question_body(Question) -->
   [who],
-  grammar:verb_phrase(singular, _ => Question).
+  grammar:verb_phrase(singular, _, _ => Question).
 
 % "Is ProperNoun Property?" questions.
 question_body(Question) -->
   [is],
-  grammar:proper_noun(Noun, X),
-  grammar:property(Noun, X => Question).
+  grammar:proper_noun(Number, Noun),
+  grammar:property(Number, Noun => Question).
 
 % "Does ProperNoun VerbPhrase?" questions.
 question_body(Question) -->
   [does],
-  grammar:proper_noun(_, X),
-  grammar:verb_phrase(_, X => Question).
+  grammar:proper_noun(_, Noun),
+  grammar:verb_phrase(_, true, Noun => Question).

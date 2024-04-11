@@ -61,31 +61,31 @@ proper_noun(singular, charlie) --> [charlie].
 % @param Word The adjective or verb.
 %
 
-verb_phrase(singular, utils:not(Adjective)) -->
+verb_phrase(singular, false, Adjective) -->
     [is, not],
     property(singular, Adjective).
 
-verb_phrase(singular, Adjective) -->
+verb_phrase(singular, true, Adjective) -->
     [is],
     property(singular, Adjective).
 
-verb_phrase(plural, utils:not(Adjective)) -->
+verb_phrase(plural, false, Adjective) -->
     [are, not],
     property(plural, Adjective).
 
-verb_phrase(plural, Adjective) -->
+verb_phrase(plural, true, Adjective) -->
     [are],
     property(plural, Adjective).
 
-verb_phrase(singular, IntransitiveVerb) -->
+verb_phrase(singular, false, IntransitiveVerb) -->
     [does, not],
     intransitive_verb(plural, IntransitiveVerb).
 
-verb_phrase(plural, IntransitiveVerb) -->
+verb_phrase(plural, false, IntransitiveVerb) -->
     [do, not],
     intransitive_verb(plural, IntransitiveVerb).
 
-verb_phrase(Number, IntransitiveVerb) -->
+verb_phrase(Number, Truth, IntransitiveVerb) -->
     intransitive_verb(Number, IntransitiveVerb).
 
 %% property(?Number:atom, ?Word:atom)//
