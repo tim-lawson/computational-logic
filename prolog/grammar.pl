@@ -112,14 +112,18 @@ property(plural, Noun) --> noun(plural, Noun).
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
-determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
+determiner(singular, true, X => Body, X => Head, [(Head :- Body)]) --> [every].
+determiner(plural, true, X => Body, X => Head, [(Head :- Body)]) --> [all].
+determiner(singular, false, X => Body, X => Head, [(grammar:maybe(Head) :- \+ Body)]) --> [every].
+determiner(plural, false, X => Body, X => Head, [(grammar:maybe(Head) :- \+ Body)]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [most].
-determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [many].
-determiner(plural, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [a, lot, of].
-
+determiner(plural, true, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [most].
+determiner(plural, true, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [many].
+determiner(plural, true, X => Body, X => Head, [(grammar:default(Head) :- Body)]) --> [a, lot, of].
+determiner(plural, false, X => Body, X => Head, [(grammar:default(Head) :- \+ Body)]) --> [most].
+determiner(plural, false, X => Body, X => Head, [(grammar:default(Head) :- \+ Body)]) --> [many].
+determiner(plural, false, X => Body, X => Head, [(grammar:default(Head) :- \+ Body)]) --> [a, lot, of].
 %% adjective(?Number:atom, ?Word:atom)//
 %
 % The adjective//2 DCG rule defines adjectives. It relates the adjective's grammatical
