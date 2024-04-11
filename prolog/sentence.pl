@@ -32,7 +32,7 @@ sentence_word --> [that].
 %
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, X, Y, Sentence),
+  grammar:determiner(Number, Truth, X, Y, Sentence),
   grammar:noun(Number, X),
   grammar:verb_phrase(Number, Truth, Y).
 
