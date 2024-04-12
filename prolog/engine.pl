@@ -224,7 +224,7 @@ add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
   add_clause_to_facts(Conjunct2, FactListTemp, FactListNew).
 
 % Base case: If the body is not a conjunction, add it to the list of facts.
-add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).d
+add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 
 %% output_known_fact(+Fact:atom, -Output:string)
 %
@@ -252,3 +252,4 @@ output_proof(proof(_, Fact), Output) :-
 output_proof(unknown(Fact), Output):-
   engine:output_known_fact([(Fact :- true)], FactOutput),
   % If the fact is not known, store a default response in the output.
+
