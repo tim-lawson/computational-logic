@@ -28,6 +28,7 @@ question_word --> [].
 %
 % @param Question The list of atoms.
 %
+
 % "Who VerbPhrase?" questions.
 question_body(Question) -->
   [who],

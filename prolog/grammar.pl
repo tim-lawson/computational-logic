@@ -30,13 +30,12 @@
 % @param Words A list of words that refer to the logical entity.
 %
 
-% Nouns.
 predicate(bird, 1, [noun/bird]).
-% Words that are both adjectives and nouns.
+predicate(penguin, 1, [noun/penguin]).
+
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
-predicate(immortal, 1, [adj/immortal, noun/immortal]).
-% Intransitive verbs.
+
 predicate(fly, 1, [verb/fly]).
 
 % --- Vocabulary and grammar ---

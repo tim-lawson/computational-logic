@@ -4,8 +4,8 @@
 %
 :- module(engine, [
     prove_question/2,
-    prove_question/3,
-    prove_question_tree/3
+    prove_question_list/2,
+    prove_question_tree/2
   ]).
 
 % --- Imports ---
@@ -16,20 +16,18 @@
 
 % --- Question Answering ---
 
-%% prove_question(+Question:atom, +SessionId:integer, -Output:string)
+%% prove_question(+Question:atom, -Output:string)
 %
-% The prove_question/3 predicate tries to prove a question based on the known facts for
-% the session. If the question can be proved, it transforms it into a sentence and
-% stores the sentence in the output. If the question cannot be proved, it stores a
-% default response in the output.
+% The prove_question/2 predicate tries to prove a question based on the known facts.
+% If the question can be proved, it transforms it into a sentence and stores it in the
+% output.
 %
 % @param +Question: The question to prove.
-% @param +SessionId: The session identifier.
 % @param -Output: The generated output.
 %
-prove_question(Question, SessionId, Output) :-
-  % Find all known facts for the session.
-  findall(Fact, utils:known_fact(SessionId, Fact), FactList),
+prove_question(Question, Output) :-
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactList),
   % Try to prove the question based on the known facts.
   (   prove_from_known_facts(Question, FactList) ->
         % If the question can be proved, transform it into a clause.
@@ -42,43 +40,37 @@ prove_question(Question, SessionId, Output) :-
       Output = 'I do not know that is true.'
   ).
 
-%% prove_question(+Question:atom, -Output:string)
+%% prove_question_list(+Question:atom, -Output:string)
 %
-% The prove_question/2 predicate is a simplified version of prove_question/3 that is
-% suitable for maplist or similar operations. It retrieves all known facts, irrespective
-% of their session, and tries to prove the question.
+% The prove_question_list/2 predicate is like prove_question/2, except it generates the
+% empty string when the question cannot be proved. This is convenient to use with
+% maplist, e.g. in find_all_results/2.
 %
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
 %
-prove_question(Question, Output) :-
-  % Find all known facts, irrespective of their session.
-  findall(Fact, utils:known_fact(_SessionId, Fact), FactList),
-  % Try to prove the question based on the known facts.
+prove_question_list(Question, Output) :-
+  findall(Fact, utils:known_fact(Fact), FactList),
   (   prove_from_known_facts(Question, FactList) ->
-        % If the question can be proved, transform it into a clause.
         transform(Question, Clause),
-        % Transform the clause into a sentence.
         phrase(sentence:sentence(Clause), OutputList),
-        % Transform the sentence into a string.
         atomics_to_string(OutputList, ' ', Output)
-  ;   % If the question cannot be proved, store a default response in the output.
+  ;   % If the question cannot be proved, store the empty string in the output.
       Output = ''
   ).
 
-%% prove_question_tree(+Question:atom, +SessionId:integer, -Output:string)
+%% prove_question_tree(+Question:atom, -Output:string)
 %
-% The prove_question_tree/3 predicate is an extended version of prove_question/3 that
+% The prove_question_tree/2 predicate is an extended version of prove_question/2 that
 % constructs a proof tree. If the question can be proved, it transforms each step of the
 % proof into a sentence and stores the sentences in the output.
 %
 % @param +Question: The question to prove.
-% @param +SessionId: The session identifier.
 % @param -Output: The generated output.
 %
-prove_question_tree(Question, SessionId, Output) :-
-  % Find all known facts for the session.
-  findall(Fact, utils:known_fact(SessionId, Fact), FactList),
+prove_question_tree(Question, Output) :-
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactList),
   % Try to prove the question based on the known facts.
   (   prove_from_known_facts(Question, FactList, [], ProofList) ->
         % If the question can be proved, transform each step of the proof into a sentence.
@@ -102,26 +94,25 @@ prove_question_tree(Question, SessionId, Output) :-
 % @param +Proof: The proof step.
 % @param -Output: The output generated.
 %
-proof_step_message(proof(_, Fact), Output):-
+proof_step_message(proof(_, Fact), Output) :-
   known_fact_output(Fact, Output).
 
-proof_step_message(n(Fact), Output):-
+proof_step_message(unknown(Fact), Output):-
   known_fact_output([(Fact :- true)], FactOutput),
   % If the fact is not known, store a default response in the output.
   atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
 
-%% is_fact_known(+FactList:list, +SessionId:integer)
+%% is_fact_known(+FactList:list)
 %
-% The is_fact_known/2 predicate checks if a fact is known for the session.
+% The is_fact_known/2 predicate checks if a fact is known.
 %
 % @param +FactList: The list of facts to check.
-% @param +SessionId: The session identifier.
 %
-is_fact_known([Fact], SessionId) :-
-  % Find all known facts for the session
-  findall(Fact, utils:known_fact(SessionId, Fact), FactListOld),
+is_fact_known([Fact]) :-
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactListOld),
   % Try to prove the fact based on the known facts.
   utils:try(
     (
@@ -163,7 +154,7 @@ add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 % @param +Fact: The fact.
 % @param -Output: The generated output.
 %
-known_fact_output(Fact, Output):-
+known_fact_output(Fact, Output) :-
   % Transform the fact into a sentence.
   phrase(sentence:sentence_body(Fact), Sentence),
   % Transform the sentence into a string.
@@ -204,8 +195,7 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
   (
-      % Try to prove using default reasoning (find a clause of the form 'if Body then
-      % Clause by default').
+      % Try to prove using default reasoning.
       find_clause((grammar:default(Clause) :- Body), Fact, FactList),
       % Try to prove the body of the clause.
       prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof)
@@ -215,7 +205,7 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
       % Try to prove the body of the clause.
       prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
-prove_from_known_facts(Clause, FactList):-
+prove_from_known_facts(Clause, FactList) :-
   prove_from_known_facts(Clause, FactList, [], _Proof).
 
 % --- Utilities ---
@@ -231,12 +221,12 @@ prove_from_known_facts(Clause, FactList):-
 %
 
 % Base case: If the clause is found, store the fact in the output.
-find_clause(Clause, Fact, [Fact|_FactList]):-
+find_clause(Clause, Fact, [Fact|_FactList]) :-
   % Avoid instantiating Fact!
   copy_term(Fact, [Clause]).
 
 % Recursive case: If the clause is not found, search the rest of the list.
-find_clause(Clause, Fact, [_Fact|FactList]):-
+find_clause(Clause, Fact, [_Fact|FactList]) :-
   find_clause(Clause, Fact, FactList).
 
 %% transform(+Term:atom, -ClauseList:list)
@@ -263,8 +253,8 @@ transform(Term, [(Term :- true)]).
 % sentences.
 %
 find_known_facts(Output) :-
-  % Find all known facts, irrespective of their session.
-  findall(Fact, utils:known_fact(_SessionId, Fact), FactList),
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactList),
   % Transform each fact into a response.
   maplist(known_fact_output, FactList, OutputList),
   % If no facts are known, store a default response in the output.
@@ -292,8 +282,8 @@ find_all_results(ProperNoun, Output) :-
     ),
     QuestionList
   ),
-  % Try to prove each question in the list and store the responses.
-  maplist(prove_question, QuestionList, QuestionOutputList),
+  % Try to prove each question in the list and store the responses (or empty strings).
+  maplist(prove_question_list, QuestionList, QuestionOutputList),
   % Remove questions that could not be proved from the list.
   delete(QuestionOutputList, '', OutputList),
   % If no questions could be proved, store a default response in the output.

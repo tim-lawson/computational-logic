@@ -7,4 +7,4 @@
 :- portray_text(true).
 
 % The modules to show comments for.
-:- [cli, command, debug, engine, grammar, question, sentence, utils].
+:- [cli, command, engine, grammar, question, sentence, utils].
