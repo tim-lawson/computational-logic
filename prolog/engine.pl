@@ -252,4 +252,5 @@ output_proof(proof(_, Fact), Output) :-
 output_proof(unknown(Fact), Output):-
   engine:output_known_fact([(Fact :- true)], FactOutput),
   % If the fact is not known, store a default response in the output.
+  atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
 
