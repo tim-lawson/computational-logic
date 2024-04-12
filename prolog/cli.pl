@@ -18,10 +18,11 @@
 
 %% cli
 %
-% The cli/0 predicate is the main entry point for the command-line interface. It reads
-% a line of user input, determines the corresponding output, and prints the output. If
-% the input is 'stop', the predicate terminates. Otherwise, it recurses to read the next
-% line of input.
+% The cli/0 predicate is the main entry point for the command-line interface.
+% It reads a line of user input, determines the corresponding output, and prints the output.
+%
+% If the input is `stop', the predicate terminates.
+% Otherwise, it calls itself to read the next line of input.
 %
 cli :-
   % Read a line of user input.
@@ -41,12 +42,12 @@ cli :-
 
 %% handle_input(+Input:string, -Output:string)
 %
-% The handle_input/2 predicate is the main entry point for handling user input. It
-% processes the input and generates the corresponding output. The input can be a
-% sentence, a question, or a command.
+% The handle_input/2 predicate is the main entry point for handling user input.
+% It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+% If the input cannot be parsed, it outputs a default message.
 %
 % @param +Input The user input.
-% @param -Output The generated output.
+% @param -Output The generated or default output.
 %
 handle_input(Input, Output) :-
   utils:write_debug('trying to handle input...'),
@@ -72,8 +73,8 @@ handle_input(Input, Output) :-
 
 %% preprocess_input(+Input:string, -Output:list)
 %
-% The preprocess_input/2 predicate splits the user input into a list of words, and
-% transforms each word to a lowercase atom.
+% The preprocess_input/2 predicate splits the input on whitespace into a list of words.
+% It transforms each word to a lowercase atom.
 %
 % @param +Input The user input.
 % @param -Output The list of atoms.
@@ -88,8 +89,8 @@ preprocess_input(Input, Output) :-
 
 %% handle_sentence(+Sentence:list, -Output:string)
 %
-% The handle_sentence/2 predicate handles a sentence input. It checks if the fact is
-% already known, and if not, adds it to the known facts.
+% The handle_sentence/2 predicate handles a sentence input.
+% If the fact that corresponds to the sentence is not known, it is added to the known facts.
 %
 % @param +Sentence The sentence (a list of atoms).
 % @param -Output The generated output.
@@ -106,8 +107,8 @@ handle_sentence(Sentence, Output) :-
 
 %% handle_question(+Question:list, -Output:string)
 %
-% The handle_question/2 predicate handles a question input. It tries to prove the
-% question using the question-answering engine.
+% The handle_question/2 predicate handles a question input.
+% It tries to prove the question using the question-answering engine.
 %
 % @param +Question The question (a list of atoms).
 % @param -Output The generated output.

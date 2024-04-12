@@ -1,0 +1,367 @@
+% This LaTeX document was generated using the LaTeX backend of PlDoc,
+% The SWI-Prolog documentation system
+
+
+
+\subsection{cli.pl}
+
+\label{sec:cli}
+
+\begin{description}
+    \predicate{cli}{0}{}
+The \predref{cli}{0} predicate is the main entry point for the command-line interface.
+It reads a line of user input, determines the corresponding output, and prints the output.
+
+If the input is `stop', the predicate terminates.
+Otherwise, it calls itself to read the next line of input.
+
+    \predicate[private]{handle_input}{2}{+Input:string, -Output:string}
+The \predref{handle_input}{2} predicate is the main entry point for handling user input.
+It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+If the input cannot be parsed, it outputs a default message.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Input} The user input. \\
+\arg{\Sminus} & \arg{Output} The generated or default output. \\
+\end{arguments}
+
+    \predicate[private]{preprocess_input}{2}{+Input:string, -Output:list}
+The \predref{preprocess_input}{2} predicate splits the input on whitespace into a list of words.
+It transforms each word to a lowercase atom.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Input} The user input. \\
+\arg{\Sminus} & \arg{Output} The list of atoms. \\
+\end{arguments}
+
+    \predicate[private]{handle_sentence}{2}{+Sentence:list, -Output:string}
+The \predref{handle_sentence}{2} predicate handles a sentence input.
+If the fact that corresponds to the sentence is not known, it is added to the known facts.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Sentence} The sentence (a list of atoms). \\
+\arg{\Sminus} & \arg{Output} The generated output. \\
+\end{arguments}
+
+    \predicate[private]{handle_question}{2}{+Question:list, -Output:string}
+The \predref{handle_question}{2} predicate handles a question input.
+It tries to prove the question using the question-answering engine.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Question} The question (a list of atoms). \\
+\arg{\Sminus} & \arg{Output} The generated output. \\
+\end{arguments}
+\end{description}
+
+\subsection{command.pl}
+
+\label{sec:command}
+
+\begin{description}
+    \dcg[private]{command}{3}{-Goal:atom, -Output:string, +Words:list}
+The \dcgref{command}{3} DCG rule parses a list of atoms into a goal to be executed by the
+engine module and stores the generated output.
+
+\begin{arguments}
+\arg{\Sminus} & \arg{Goal} The goal to execute. \\
+\arg{\Sminus} & \arg{Output} The generated output. \\
+\arg{\Splus} & \arg{Words} The list of atoms. \\
+\end{arguments}
+\end{description}
+
+\subsection{engine.pl}
+
+\label{sec:engine}
+
+\begin{description}
+    \predicate{prove_question}{2}{+Question:atom, -Output:string}
+The \predref{prove_question}{2} predicate tries to prove a question from the known facts.
+If the question can be proved, it is transformed into a sentence output.
+Otherwise, a default response is output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Question}: The question to prove. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate{prove_question_list}{2}{+Question:atom, -Output:string}
+The \predref{prove_question_list}{2} predicate is equivalent to \predref{prove_question}{2}, except it outputs the empty string when the question cannot be proved.
+This predicate is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Question}: The question to prove. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate{prove_question_tree}{2}{+Question:atom, -Output:string}
+The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that constructs a proof tree.
+If the question can be proved, it transforms each step of the proof into a sentence and concatenates the sentences into the output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Question}: The question to prove. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{prove_from_known_facts}{4}{+Clause:atom, +FactList:list, -ProofList:list, -Proof}
+The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
+If the clause can be proved, it stores the proof in the output. The proof is a list of
+steps, where each step is a fact that was used to prove the clause.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause to prove. \\
+\arg{\Splus} & \arg{FactList}: The list of facts to use. \\
+\arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
+\arg{\Sminus} & \arg{Proof}: The generated proof.
+  \\
+\end{arguments}
+
+    \predicate[private]{find_known_facts}{1}{-Output}
+The \predref{find_known_facts}{1} predicate finds all known facts and transforms them into sentences.
+
+\begin{arguments}
+\arg{\Sminus} & \arg{Output}: The known facts or default response.
+  \\
+\end{arguments}
+
+    \predicate[private]{find_known_facts_noun}{2}{+ProperNoun, -Output}
+The \predref{find_known_facts_noun}{2} predicate finds all known facts with a proper-noun argument and transforms them into sentences.
+
+\begin{arguments}
+\arg{\Splus} & \arg{ProperNoun}: The proper noun. \\
+\arg{\Sminus} & \arg{Output}: The known facts or default response.
+  \\
+\end{arguments}
+
+    \predicate[private]{is_fact_known}{1}{+FactList:list}
+The \predref{is_fact_known}{2} predicate checks if a fact is known.
+
+\begin{arguments}
+\arg{\Splus} & \arg{FactList}: The list of facts to check.
+  \\
+\end{arguments}
+
+    \predicate[private]{add_clause_to_facts}{3}{+Clause:atom, +FactListOld:list, -FactListNew:list}
+The \predref{add_clause_to_facts}{3} predicate adds a clause to a list of facts.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause. \\
+\arg{\Splus} & \arg{FactListOld}: The list of facts to update. \\
+\arg{\Sminus} & \arg{FactListNew}: The updated list of facts.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_proof}{2}{+Proof:atom, -Output:string}
+The \predref{output_proof}{2} predicate transforms a proof step into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Proof}: The proof step. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+\end{description}
+
+\subsection{grammar.pl}
+
+\label{sec:grammar}
+
+\begin{description}
+    \predicate{predicate}{3}{-Predicate:atom, -Arity:integer, -Words:list}
+The \predref{predicate}{3} predicate defines the logical vocabulary of the system. It relates a
+predicate, its arity, and a list of words and syntactic categories that refer to the
+logical entity.
+
+\begin{arguments}
+\arg{Predicate} & The predicate. \\
+\arg{Arity} & The number of arguments the predicate takes. \\
+\arg{Words} & A list of words that refer to the logical entity.
+  \\
+\end{arguments}
+
+    \dcg[private]{proper_noun}{2}{?Number:atom, ?Word:atom}
+The \dcgref{proper_noun}{2} DCG rule defines proper nouns. It relates the proper noun's
+grammatical number, its atom, and a list of atoms that refer to it.
+
+\begin{arguments}
+\arg{Number} & The grammatical number. \\
+\arg{Word} & The proper noun.
+  \\
+\end{arguments}
+
+    \dcg[private]{verb_phrase}{2}{?Number:atom, ?Word:atom}
+The \dcgref{verb_phrase}{2} DCG rule defines verb phrases. It relates the verb phrase's
+grammatical number, its atom, and a list of atoms that refer to it.
+
+\begin{arguments}
+\arg{Number} & The grammatical number. \\
+\arg{Word} & The adjective or verb.
+  \\
+\end{arguments}
+
+    \dcg[private]{property}{2}{?Number:atom, ?Word:atom}
+The \dcgref{property}{2} DCG rule defines properties. It relates the property's grammatical
+number, its atom, and a list of atoms that refer to it.
+
+\begin{arguments}
+\arg{Number} & The grammatical number. \\
+\arg{Word} & The adjective or noun.
+  \\
+\end{arguments}
+
+    \dcg[private]{determiner}{4}{?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
+The \dcgref{determiner}{4} DCG rule defines determiners. It relates the determiner's
+grammatical number, its body, its head, and a list of rules that refer to it.
+
+\begin{arguments}
+\arg{\Squest} & \arg{Number} The grammatical number. \\
+\arg{\Squest} & \arg{Body} The body of the rule. \\
+\arg{\Squest} & \arg{Head} The head of the rule. \\
+\arg{\Squest} & \arg{Rule} The rule.
+  \\
+\end{arguments}
+
+    \dcg[private]{adjective}{2}{?Number:atom, ?Word:atom}
+The \dcgref{adjective}{2} DCG rule defines adjectives. It relates the adjective's grammatical
+number, its atom, and a list of atoms that refer to it.
+
+\begin{arguments}
+\arg{\Squest} & \arg{Number} The grammatical number. \\
+\arg{\Squest} & \arg{Word} The adjective.
+  \\
+\end{arguments}
+
+    \dcg[private]{noun}{2}{?Number:atom, ?Word:atom}
+The \dcgref{noun}{2} DCG rule defines nouns. It relates the noun's grammatical number and
+its literal.
+
+\begin{arguments}
+\arg{\Squest} & \arg{Number} The grammatical number. \\
+\arg{\Squest} & \arg{Word} The literal.
+  \\
+\end{arguments}
+
+    \dcg[private]{intransitive_verb}{2}{?Number:atom, ?Word:atom}
+The \dcgref{intransitive_verb}{2} DCG rule defines intransitive verbs. It relates the verb's
+grammatical number and its literal.
+
+\begin{arguments}
+\arg{\Squest} & \arg{Number} The grammatical number. \\
+\arg{\Squest} & \arg{Word} The literal.
+  \\
+\end{arguments}
+
+    \predicate{noun_singular_to_plural}{2}{?SingularNoun:atom, ?PluralNoun:atom}
+The \predref{noun_singular_to_plural}{2} predicate converts the singular form of a noun to the
+plural form and vice versa.
+
+\begin{arguments}
+\arg{SingularNoun} & The singular form. \\
+\arg{PluralNoun} & The plural form.
+  \\
+\end{arguments}
+
+    \predicate{verb_plural_to_singular}{2}{?PluralVerb:atom, ?SingularVerb:atom}
+The \predref{verb_plural_to_singular}{2} predicate converts the plural form of a verb to the
+singular form and vice versa.
+
+\begin{arguments}
+\arg{PluralVerb} & The plural form. \\
+\arg{SingularVerb} & The singular form.
+  \\
+\end{arguments}
+
+    \predicate{predicate_to_grammar}{4}{+Predicate:atom, +Arity:integer, +WordCategory:atom, -Literal:callable}
+The \predref{predicate_to_grammar}{4} predicate constructs a literal from a predicate and an
+argument.
+
+\begin{arguments}
+\arg{Predicate} & The predicate. \\
+\arg{Arity} & The number of arguments the predicate takes. \\
+\arg{WordCategory} & The word category. \\
+\arg{Literal} & The literal.
+  \\
+\end{arguments}
+\end{description}
+
+\subsection{question.pl}
+
+\label{sec:question}
+
+\begin{description}
+    \dcg{question}{1}{+Question:list}
+The \dcgref{question}{1} DCG rule parses a list of atoms into a question.
+
+\begin{arguments}
+\arg{Question} & The list of atoms. \\
+\end{arguments}
+
+    \dcg[private]{question_body}{1}{Question:list}
+The \dcgref{question_body}{1} DCG rule parses a list of atoms into the body of a question.
+
+\begin{arguments}
+\arg{Question} & The list of atoms. \\
+\end{arguments}
+\end{description}
+
+\subsection{sentence.pl}
+
+\label{sec:sentence}
+
+\begin{description}
+    \dcg{sentence_body}{1}{Sentence:list}
+The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence body.
+
+\begin{arguments}
+\arg{Sentence} & The list of atoms.
+
+"Determiner Noun VerbPhrase" sentences. \\
+\end{arguments}
+\end{description}
+
+\subsection{utils.pl}
+
+\label{sec:utils}
+
+\begin{description}
+    \predicate{concatenate_conjunctive}{3}{+ListX, +ListY, -ListZ}
+The \predref{concatenate_conjunctive}{3} predicate concatenates two lists of conjunctive literals.
+
+\begin{arguments}
+\arg{ListX} & The first list. \\
+\arg{ListY} & The second list. \\
+\arg{ListZ} & The concatenated list.
+
+Base case: List is the conjunctive concatenation of true and List. \\
+\end{arguments}
+
+    \predicate[private]{find_clause}{3}{+Clause:atom, +Fact:atom, +FactList:list}
+The \predref{find_clause}{3} predicate finds a clause in the list of facts that unifies with the
+given clause and stores the fact in the output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause to find. \\
+\arg{\Splus} & \arg{Fact}: The fact to store in the output. \\
+\arg{\Splus} & \arg{FactList}: The list of facts to search. \\
+\end{arguments}
+
+    \predicate[private]{transform}{2}{+Term:atom, -ClauseList:list}
+The \predref{transform}{2} predicate transforms a term into a list of clauses.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Term}: The term to transform. \\
+\arg{\Sminus} & \arg{ClauseList}: The list of clauses generated based on the term. \\
+\end{arguments}
+
+    \predicate{try}{1}{+X}
+The \predref{try}{1} predicate tries to prove a goal.
+
+\begin{arguments}
+\arg{X} & The goal to prove. \\
+\end{arguments}
+
+    \predicate[private]{write_debug}{1}{+X}
+The \predref{write_debug}{1} predicate writes a debug message to the console.
+\end{description}
+

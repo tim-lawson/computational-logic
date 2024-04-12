@@ -1,10 +1,5 @@
 {
   "recommendations": [
     // "arthurwang.vsc-prolog",
-    "ms-python.black-formatter",
-    "ms-python.isort",
-    "ms-python.pylint",
-    "ms-python.python",
-    "ms-python.vscode-pylance"
   ]
 }

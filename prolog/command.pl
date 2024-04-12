@@ -1,7 +1,7 @@
 %% command: Command parser.
 %
-% This module is parses commands and converts them into goals to be executed by the
-% engine module.
+% This module parses commands and converts them into goals to be executed by the engine
+% module.
 %
 :- module(command, [command/3]).
 
@@ -40,7 +40,7 @@ command(goal(engine:find_known_facts(Output), Output)) -->
   [spill, the, beans].
 
 % Output all known facts about a proper noun.
-command(goal(engine:find_all_results(ProperNoun, Output), Output)) -->
+command(goal(engine:find_known_facts_noun(ProperNoun, Output), Output)) -->
   [tell, me, about],
   grammar:proper_noun(singular, ProperNoun).
 

@@ -23,6 +23,9 @@
 **/*.synctex\(busy\)
 **/*.toc
 
+**/*.pdf
+**/*.sty
+
 # macOS
 *.DS_Store
 
