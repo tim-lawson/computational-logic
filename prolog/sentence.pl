@@ -7,6 +7,7 @@
 % --- Imports ---
 
 :- use_module(grammar).
+:- use_module(utils).
 
 % --- Sentence parser ---
 
@@ -29,13 +30,16 @@ sentence_word --> [that].
 %
 % @param Sentence The list of atoms.
 %
-% "Determiner Noun VerbPhrase" sentences.
+
 sentence_body(Sentence) -->
   grammar:determiner(Number, X, Y, Sentence),
   grammar:noun(Number, X),
   grammar:verb_phrase(Number, Y).
 
-% "ProperNoun VerbPhrase" sentences.
+sentence_body([(utils:not(Literal) :- true)]) -->
+  grammar:proper_noun(Noun, X),
+  grammar:verb_phrase(Noun, utils:not(X => Literal)).
+
 sentence_body([(Literal :- true)]) -->
   grammar:proper_noun(Noun, X),
   grammar:verb_phrase(Noun, X => Literal).
