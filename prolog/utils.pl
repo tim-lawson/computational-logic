@@ -89,7 +89,7 @@ transform(Term, Truth, [(Term :- Truth)]).
 try(X):- \+ \+ X.
 
 %% write_debug(+X)
-%
+
 % The write_debug/1 predicate writes a debug message to the console.
 %
 write_debug(X) :-
