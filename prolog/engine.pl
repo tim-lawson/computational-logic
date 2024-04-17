@@ -126,14 +126,14 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to prove the body of the clause.
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-  % nested case e.g. default(negation(...))
+  % nested case e.g. default(negate(...))
   utils:find_clause((default(Clause)), Fact, FactList),
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to prove using negation TODO handle when Clause and Body are swapped (if needed)
-  utils:find_clause(negation(Clause, Body), Fact, FactList),
-  prove_from_known_facts(Body, FactList, [proof(negation(Clause, Body), Fact)|ProofList], Proof, NextTruth),
+  utils:find_clause(negate(Clause, Body), Fact, FactList),
+  prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, NextTruth),
   % if the body is true, then the clause is false. However, if the body is false, we cannot necessarily conclude that the clause is true.
   (NextTruth = true -> Truth = false; fail).
 
