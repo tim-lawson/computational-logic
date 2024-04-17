@@ -114,19 +114,19 @@ property(plural, Noun) --> noun(plural, Noun).
 % If the determiner is like "all", then the body of the rule implies the head.
 determiner(singular, true, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, true, X => Body, X => Head, [(Head :- Body)]) --> [all].
-% Every Body (e.g. human) does not Head (e.g. flies) implies Head and Body are different
-% e.g. negate(human(X), flies(X)).
-determiner(singular, false, X => Body, X => Head, [(negate(Head, Body))]) --> [every].
-determiner(plural, false, X => Body, X => Head, [(negate(Head, Body))]) --> [all].
+% Every Body (e.g. human) does not Head (e.g. flies) implies Head and Body are different,
+% e.g. negate(human(X) :- flies(X)).
+determiner(singular, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [every].
+determiner(plural, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 % TODO: I don't think we can stack these like this unless we add logic in the engine to unpack them. They'll just never match.
-determiner(plural, false, X => Body, X => Head, [default((negate(Head, Body)))]) --> [most].
-determiner(plural, false, X => Body, X => Head, [default((negate(Head, Body)))]) --> [many].
-determiner(plural, false, X => Body, X => Head, [default((negate(Head, Body)))]) --> [a, lot, of].
+determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [most].
+determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [many].
+determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [a, lot, of].
 
 %% adjective(?Number:atom, ?Word:atom)//
 %

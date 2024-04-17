@@ -102,7 +102,6 @@ prove_question_tree(Question, Output) :-
 
 % Base case: If the clause is true, we are done.
 prove_from_known_facts(true, _FactList, ProofList, ProofList, true) :- !.
-prove_from_known_facts(false, _FactList, ProofList, ProofList, false) :- !.
 
 % Recursive case: If the clause is a conjunction, try to prove each conjunct.
 prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth) :-
@@ -120,26 +119,29 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth
     Truth
   ).
 
+% Try to prove using default reasoning.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-  % Try to prove using default reasoning.
   utils:find_clause((default(Clause) :- Body), Fact, FactList),
-  % Try to prove the body of the clause.
+  utils:write_debug("Found default clause"), utils:write_debug((default(Clause) :- Body)),
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-  % nested case e.g. default(negate(...))
+  % Nested case, e.g. default(negate(...))
   utils:find_clause((default(Clause)), Fact, FactList),
+  utils:write_debug("Found default clause"), utils:write_debug((default(Clause) :- Body)),
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 
-prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-  % Try to prove using negation TODO handle when Clause and Body are swapped (if needed)
-  utils:find_clause(negate(Clause, Body), Fact, FactList),
-  prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, NextTruth),
+% Try to prove using negation.
+prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
+  utils:find_clause(negate(Clause :- Body), Fact, FactList),
+  utils:write_debug("Found negate clause"), utils:write_debug((negate(Clause :- Body))),
+  prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, true).
   % if the body is true, then the clause is false. However, if the body is false, we cannot necessarily conclude that the clause is true.
-  (NextTruth = true -> Truth = false; fail).
+  % (NextTruth = true -> Truth = false; fail).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to prove the clause (find a clause of the form 'if Body then Clause').
   utils:find_clause((Clause :- Body), Fact, FactList),
+  utils:write_debug("Found clause"), utils:write_debug((Clause :- Body)),
   % Try to prove the body of the clause.
   prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof, Truth).
 
