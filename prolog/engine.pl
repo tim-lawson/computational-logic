@@ -197,15 +197,19 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth
   ).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-    % Try to prove using default reasoning.
-    find_clause((grammar:default(Clause) :- Body), Fact, FactList),
-    % Try to prove the body of the clause.
-    prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
+  % Try to prove using default reasoning.
+  find_clause((default(Clause) :- Body), Fact, FactList),
+  % Try to prove the body of the clause.
+  prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
+prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
+  % nested case e.g. default(negation(...))
+  find_clause((default(Clause)), Fact, FactList),
+  prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to prove using negation TODO handle when Clause and Body are swapped (if needed)
-  find_clause(disj(Clause, Body), Fact, FactList),
-  prove_from_known_facts(Body, FactList, [proof(disj(Clause, Body), Fact)|ProofList], Proof, NextTruth),
+  find_clause(negation(Clause, Body), Fact, FactList),
+  prove_from_known_facts(Body, FactList, [proof(negation(Clause, Body), Fact)|ProofList], Proof, NextTruth),
   % if the body is true, then the clause is false. However, if the body is false, we cannot necessarily conclude that the clause is true.
   (NextTruth = true -> Truth = false; fail). 
 
