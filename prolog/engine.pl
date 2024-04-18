@@ -113,12 +113,7 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
   % Concatenate the body of the proof with the second conjunct.
   utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
   % Try to prove the concatenated clauses.
-  prove_from_known_facts(
-    Body2,
-    FactList,
-    [proof((Conjunct1, Conjunct2), Fact)|ProofList],
-    Proof
-  ).
+  prove_from_known_facts(Body2, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
   utils:find_clause((default(Clause) :- Body), Fact, FactList),

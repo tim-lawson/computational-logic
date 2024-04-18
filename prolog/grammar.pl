@@ -31,12 +31,10 @@
 %
 
 predicate(bird, 1, [noun/bird]).
-predicate(penguin, 1, [noun/penguin]).
-
+predicate(fly, 1, [verb/fly]).
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
-
-predicate(fly, 1, [verb/fly]).
+predicate(penguin, 1, [noun/penguin]).
 
 % --- Vocabulary and grammar ---
 
@@ -103,6 +101,7 @@ property(plural, negate(Noun)) --> [not], noun(plural, Noun).
 determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 
+% If the determiner is like "no", then the body of the rule implies the negation of the head.
 determiner(singular, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [every].
 determiner(plural, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [all].
 
