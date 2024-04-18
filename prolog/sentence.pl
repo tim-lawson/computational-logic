@@ -40,6 +40,6 @@ sentence_body([implies(Literal, true)]) -->
   grammar:proper_noun(Noun, X),
   grammar:verb_phrase(Noun, true, X => Literal).
 
-sentence_body([negate(implies(Literal, true))]) -->
+sentence_body([negates(Literal, true)]) -->
   grammar:proper_noun(Noun, X),
   grammar:verb_phrase(Noun, false, X => Literal).

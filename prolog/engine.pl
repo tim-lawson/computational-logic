@@ -130,10 +130,10 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
 % Try to prove using negation.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
   % Try to find a clause of the form 'if Body then not Clause'.
-  utils:find_clause(negate(implies(Clause, Body)), Fact, FactList),
-  utils:write_debugs(['found negate clause', negate(implies(Clause, Body))]),
+  utils:find_clause(negates(Clause, Body), Fact, FactList),
+  utils:write_debugs(['found negate clause', negates(Clause, Body)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body), Fact)|ProofList], Proof, true).
 
 % Try to prove the clause.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
