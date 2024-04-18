@@ -74,7 +74,7 @@ prove_question_tree(Question, Output) :-
         % If the question can be proved, transform each step of the proof into a sentence.
         maplist(output_proof, ProofList, OutputListTemp),
         % Transform the last step of the proof into a sentence. #TODO: negation not working.
-        phrase(sentence:sentence_body([implies(Question, Truth)]), Clause),
+        phrase(sentence:sentence_body([implication(Question, true, _Certainty, Truth)]), Clause),
         % Transform the clause into a sentence.
         atomic_list_concat([therefore|Clause], ' ', LastClause),
         % Append the last step to the output.
@@ -120,34 +120,34 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth
   ).
 
 % Try to prove using default reasoning.
-prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
+prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to find a clause of the form 'if Body then default Clause'.
-  utils:find_clause(implies(Clause, Body, default), Fact, FactList),
-  utils:write_debugs(['found default clause', implies(Clause, Body, default)]),
+  utils:find_clause(implication(Clause, Body, default, Truth), Fact, FactList),
+  utils:write_debugs(['found default clause', implication(Clause, Body, default, Truth)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(implies(Clause, Body, default), Fact)|ProofList], Proof, true).
-prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
-  % Try to find a clause of the form 'if Body then default Clause'.
-  utils:find_clause(negates(Clause, Body, default), Fact, FactList),
-  utils:write_debugs(['found default clause', negates(Clause, Body, default)]),
-  % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, default), Fact)|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(implication(Clause, Body, default, Truth), Fact)|ProofList], Proof, true).
+% prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
+%   % Try to find a clause of the form 'if Body then default Clause'.
+%   utils:find_clause(negates(Clause, Body, default), Fact, FactList),
+%   utils:write_debugs(['found default clause', negates(Clause, Body, default)]),
+%   % Try to prove the body of the clause.
+%   prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, default), Fact)|ProofList], Proof, true).
 
 % Try to prove using negation.
-prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
-  % Try to find a clause of the form 'if Body then not Clause'.
-  utils:find_clause(negates(Clause, Body, always), Fact, FactList),
-  utils:write_debugs(['found negate clause', negates(Clause, Body, always)]),
-  % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, always), Fact)|ProofList], Proof, true).
+% prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
+%   % Try to find a clause of the form 'if Body then not Clause'.
+%   utils:find_clause(negates(Clause, Body, always), Fact, FactList),
+%   utils:write_debugs(['found negate clause', negates(Clause, Body, always)]),
+%   % Try to prove the body of the clause.
+%   prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, always), Fact)|ProofList], Proof, true).
 
 % Try to prove the clause.
-prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
+prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Try to find a clause of the form 'if Body then Clause'.
-  utils:find_clause(implies(Clause, Body, always), Fact, FactList),
-  utils:write_debugs(['found clause', implies(Clause, Body, always)]),
+  utils:find_clause(implication(Clause, Body, always, Truth), Fact, FactList),
+  utils:write_debugs(['found clause', implication(Clause, Body, always, Truth)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(implies(Clause, Fact, always))|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(implication(Clause, Fact, always, Truth))|ProofList], Proof, true).
 
 prove_from_known_facts(Clause, FactList, Truth) :-
   prove_from_known_facts(Clause, FactList, [], _Proof, Truth).
@@ -203,7 +203,7 @@ find_known_facts_noun(ProperNoun, Output) :-
 
 % TODO: I don't know if this is used.
 proof_step_message(unknown(Fact), Output):-
-  known_fact_output([implies(Fact, true)], FactOutput),
+  known_fact_output([implication(Fact, true, Certainty, Truth)], FactOutput),
   % If the fact is not known, store a default response in the output.
   atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
@@ -224,7 +224,7 @@ is_fact_known([Fact]) :-
       % Try to unify the free variables in the fact with anything else.
       numbervars(Fact, 0, _),
       % Construct a clause from the fact.
-      Fact = implies(Head, Body),
+      Fact = implication(Head, Body, _Certainty, _Truth),
       % Add the body of the clause to the known facts.
       engine:add_clause_to_facts(Body, FactListOld, FactListNew),
       % Try to prove the head of the clause based on the known facts.
@@ -250,7 +250,7 @@ add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
   add_clause_to_facts(Conjunct2, FactListTemp, FactListNew).
 
 % Base case: If the body is not a conjunction, add it to the list of facts.
-add_clause_to_facts(Clause, FactList, [implies(Clause, true)|FactList]).
+add_clause_to_facts(Clause, FactList, [implication(Clause, true, _, _)|FactList]).
 
 %% output_known_fact(+Fact:atom, -Output:string)
 %
@@ -277,6 +277,6 @@ output_proof(proof(_, Fact), Output) :-
 
 % TODO: I don't know if this is used.
 output_proof(unknown(Fact), Output):-
-  engine:output_known_fact([implies(Fact, true)], FactOutput),
+  engine:output_known_fact([implication(Fact, true, _, _)], FactOutput),
   % If the fact is not known, store a default response in the output.
   atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).

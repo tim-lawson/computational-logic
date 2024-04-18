@@ -36,10 +36,6 @@ sentence_body(Sentence) -->
   grammar:noun(Number, X),
   grammar:verb_phrase(Number, Truth, Y).
 
-sentence_body([implies(Literal, true, always)]) -->
+sentence_body([implication(Literal, true, always, Truth)]) -->
   grammar:proper_noun(Noun, X),
-  grammar:verb_phrase(Noun, true, X => Literal).
-
-sentence_body([negates(Literal, true, always)]) -->
-  grammar:proper_noun(Noun, X),
-  grammar:verb_phrase(Noun, false, X => Literal).
+  grammar:verb_phrase(Noun, Truth, X => Literal).
