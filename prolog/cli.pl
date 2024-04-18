@@ -42,8 +42,8 @@ cli :-
 
 %% handle_input(+Input:string, -Output:string)
 %
-% The handle_input/2 predicate is the main entry point for handling user input.
-% It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+% The handle_input/2 predicate preprocesses the input and tries to parse it as either a
+% sentence, a question, or command.
 % If the input cannot be parsed, it outputs a default message.
 %
 % @param +Input The user input.

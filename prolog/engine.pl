@@ -20,7 +20,7 @@
 %
 % The prove_question/2 predicate tries to prove a question from the known facts.
 % If the question can be proved, it is transformed into a sentence output.
-% Otherwise, a default response is output.
+% Otherwise, it outputs a default response.
 %
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
@@ -36,13 +36,14 @@ prove_question(Question, Output) :-
         phrase(sentence:sentence(Clause), OutputList),
         % Transform the sentence into a string.
         atomics_to_string(OutputList, ' ', Output)
-  ;   % If the question cannot be proved, store a default response in the output.
+  ;   % If the question cannot be proved, output a default response.
       Output = 'I do not know that is true.'
   ).
 
 %% prove_question_list(+Question:atom, -Output:string)
 %
-% The prove_question_list/2 predicate is equivalent to prove_question/2, except it outputs the empty string when the question cannot be proved.
+% The prove_question_list/2 predicate is equivalent to prove_question/2, except it
+% outputs the empty string when the question cannot be proved.
 % This predicate is suitable for use with maplist, such as in find_known_facts_noun/2.
 %
 % @param +Question: The question to prove.
@@ -60,8 +61,10 @@ prove_question_list(Question, Output) :-
 
 %% prove_question_tree(+Question:atom, -Output:string)
 %
-% The prove_question_tree/2 predicate is an extended version of prove_question/2 that constructs a proof tree.
-% If the question can be proved, it transforms each step of the proof into a sentence and concatenates the sentences into the output.
+% The prove_question_tree/2 predicate is an extended version of prove_question/2 that
+% constructs a proof tree.
+% If the question can be proved, it transforms each step of the proof into a sentence
+% and concatenates the sentences into the output.
 %
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
@@ -81,7 +84,7 @@ prove_question_tree(Question, Output) :-
         append(OutputListTemp, [LastClause], OutputList),
         % Transform the sentences into strings.
         atomic_list_concat(OutputList, ', ', Output)
-  ;   % If the question cannot be proved, store a default response in the output.
+  ;   % If the question cannot be proved, output a default response.
       Output = 'I do not think that is true.'
   ).
 
@@ -89,9 +92,9 @@ prove_question_tree(Question, Output) :-
 
 %% prove_from_known_facts(+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom)
 %
-% The prove_from_known_facts/5 predicate tries to prove a clause based on a list of facts.
-% If the clause can be proved, it stores the proof in the output. The proof is a list of
-% steps, where each step is a fact that was used to prove the clause.
+% The prove_from_known_facts/4 predicate tries to prove a clause based on a list of facts.
+% If the clause can be proved, it stores the proof in the output.
+% The proof is a list of steps, where each step is a fact that was used to prove the clause.
 %
 % @param +Clause: The clause to prove.
 % @param +FactList: The list of facts to use.
@@ -129,12 +132,22 @@ prove_from_known_facts(negate(Clause), FactList, ProofList, Proof) :-
   utils:find_clause((Body :- Clause), Fact, FactList),
   prove_from_known_facts(negate(Body), FactList, [proof(Clause, Fact)|ProofList], Proof).
 
+
+%% prove_from_known_facts(+Clause:atom, +FactList:list)
+%
+% The prove_from_known_facts/3 predicate is an entry point to the
+% prove_from_known_facts/4 predicate that does not store the proof.
+%
+% @param +Clause: The clause to prove.
+% @param +FactList: The list of facts to use.
+%
 prove_from_known_facts(Clause, FactList) :-
   prove_from_known_facts(Clause, FactList, [], _Proof).
 
+
 % --- Commands ---
 
-%% find_known_facts(-Output)
+%% find_known_facts(-Output:str)
 %
 % The find_known_facts/1 predicate finds all known facts and transforms them into sentences.
 %
@@ -145,15 +158,16 @@ find_known_facts(Output) :-
   findall(Fact, utils:known_fact(Fact), FactList),
   % Transform each fact into a response.
   maplist(engine:output_known_fact, FactList, OutputList),
-  % If no facts are known, store a default response in the output.
+  % If no facts are known, output a default response.
   (   OutputList = [] -> Output = 'I do not know anything.'
   % Otherwise, store the concatenated responses in the output.
   ;   atomic_list_concat(OutputList, '. ', Output)
   ).
 
-%% find_known_facts_noun(+ProperNoun, -Output)
+%% find_known_facts_noun(+ProperNoun:atom, -Output:str)
 %
-% The find_known_facts_noun/2 predicate finds all known facts with a proper-noun argument and transforms them into sentences.
+% The find_known_facts_noun/2 predicate finds all known facts with a proper-noun argument
+% and transforms them into sentences.
 %
 % @param +ProperNoun: The proper noun.
 % @param -Output: The known facts or default response.
@@ -173,7 +187,7 @@ find_known_facts_noun(ProperNoun, Output) :-
   maplist(engine:prove_question_list, QuestionList, QuestionOutputList),
   % Remove questions that could not be proved from the list.
   delete(QuestionOutputList, '', OutputList),
-  % If no questions could be proved, store a default response in the output.
+  % If no questions could be proved, output a default response.
   (   OutputList = [] ->
         atomic_list_concat(['I do not know anything about', ProperNoun], ' ', Output)
   % Otherwise, store the concatenated responses in the output.
@@ -184,7 +198,7 @@ find_known_facts_noun(ProperNoun, Output) :-
 % TODO: I don't know if this is used.
 proof_step_message(unknown(Fact), Output):-
   known_fact_output([(Fact :- true)], FactOutput),
-  % If the fact is not known, store a default response in the output.
+  % If the fact is not known, output a default response.
   atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
@@ -258,5 +272,5 @@ output_proof(proof(_, Fact), Output) :-
 % TODO: I don't know if this is used.
 output_proof(unknown(Fact), Output):-
   engine:output_known_fact([(Fact :- true)], FactOutput),
-  % If the fact is not known, store a default response in the output.
+  % If the fact is not known, output a default response.
   atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).

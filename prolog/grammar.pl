@@ -61,32 +61,16 @@ proper_noun(singular, charlie) --> [charlie].
 % @param Word The adjective or verb.
 %
 
-verb_phrase(singular, Property) -->
-    [is],
-    property(singular, Property).
+verb_phrase(singular, Property) --> [is], property(singular, Property).
+verb_phrase(singular, negate(Property)) --> [is, not], property(singular, Property).
 
-verb_phrase(singular, negate(Property)) -->
-    [is, not],
-    property(singular, Property).
+verb_phrase(plural, Property) --> [are], property(plural, Property).
+verb_phrase(plural, negate(Property)) --> [are, not], property(plural, Property).
 
-verb_phrase(plural, Property) -->
-    [are],
-    property(plural, Property).
+verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
-verb_phrase(plural, negate(Property)) -->
-    [are, not],
-    property(plural, Property).
-
-verb_phrase(Number, IntransitiveVerb) -->
-    intransitive_verb(Number, IntransitiveVerb).
-
-verb_phrase(singular, negate(IntransitiveVerb)) -->
-    [does, not],
-    intransitive_verb(plural, IntransitiveVerb).
-
-verb_phrase(plural, IntransitiveVerb) -->
-    [do, not],
-    intransitive_verb(plural, negate(IntransitiveVerb)).
+verb_phrase(singular, negate(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
+verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negate(IntransitiveVerb)).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -97,13 +81,17 @@ verb_phrase(plural, IntransitiveVerb) -->
 % @param Word The adjective or noun.
 %
 property(Number, Adjective) --> adjective(Number, Adjective).
+
 property(singular, Noun) --> [a], noun(singular, Noun).
+property(singular, negate(Noun)) --> [not, a], noun(singular, Noun).
+
 property(plural, Noun) --> noun(plural, Noun).
+property(plural, negate(Noun)) --> [not], noun(plural, Noun).
 
 %% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
 %
 % The determiner//4 DCG rule defines determiners. It relates the determiner's
-% grammatical number, its body, its head, and a list of atoms that refer to it.
+% grammatical number, its corresponding rule, and a list of atoms that refer to it.
 %
 % @param ?Number The grammatical number.
 % @param ?Body The relation between a proposition X and the body of the rule.

@@ -13,11 +13,6 @@
 % This predicate controls whether debug outputs are enabled.
 debug_enabled(on).
 
-% --- Operators ---
-
-% A prefix operator for negation, i.e. `not p`.
-% :-op(900, fy, is_not).
-
 % --- Predicates ---
 
 % Store known facts.
