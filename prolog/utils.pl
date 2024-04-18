@@ -73,13 +73,13 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 %
 
 % Base case: If the term is a conjunction, transform each conjunct. #TODO
-transform((Term1, Term2), Truth, [implies(Term1, Truth)|Rest]) :-
+transform((Term1, Term2), Truth, [implies(Term1, Truth, Certainty)|Rest]) :-
   !,
   transform(Term2, Truth, Rest).
 
 % Recursive case: If the term is not a conjunction, transform it into a clause.
-transform(Term, true, [implies(Term, true)]).
-transform(Term, false, [negates(Term, true)]).
+transform(Term, true, [implies(Term, true, always)]).
+transform(Term, false, [negates(Term, true, always)]).
 
 %% try(+X)
 %

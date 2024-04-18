@@ -122,26 +122,32 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth
 % Try to prove using default reasoning.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
   % Try to find a clause of the form 'if Body then default Clause'.
-  utils:find_clause(default(implies(Clause, Body)), Fact, FactList),
-  utils:write_debugs(['found default clause', default(implies(Clause, Body))]),
+  utils:find_clause(implies(Clause, Body, default), Fact, FactList),
+  utils:write_debugs(['found default clause', implies(Clause, Body, default)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(default(Clause, Body), Fact)|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(implies(Clause, Body, default), Fact)|ProofList], Proof, true).
+prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
+  % Try to find a clause of the form 'if Body then default Clause'.
+  utils:find_clause(negates(Clause, Body, default), Fact, FactList),
+  utils:write_debugs(['found default clause', negates(Clause, Body, default)]),
+  % Try to prove the body of the clause.
+  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, default), Fact)|ProofList], Proof, true).
 
 % Try to prove using negation.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
   % Try to find a clause of the form 'if Body then not Clause'.
-  utils:find_clause(negates(Clause, Body), Fact, FactList),
-  utils:write_debugs(['found negate clause', negates(Clause, Body)]),
+  utils:find_clause(negates(Clause, Body, always), Fact, FactList),
+  utils:write_debugs(['found negate clause', negates(Clause, Body, always)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body), Fact)|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(negates(Clause, Body, always), Fact)|ProofList], Proof, true).
 
 % Try to prove the clause.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, true) :-
   % Try to find a clause of the form 'if Body then Clause'.
-  utils:find_clause(implies(Clause, Body), Fact, FactList),
-  utils:write_debugs(['found clause', implies(Clause, Body)]),
+  utils:find_clause(implies(Clause, Body, always), Fact, FactList),
+  utils:write_debugs(['found clause', implies(Clause, Body, always)]),
   % Try to prove the body of the clause.
-  prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof, true).
+  prove_from_known_facts(Body, FactList, [proof(implies(Clause, Fact, always))|ProofList], Proof, true).
 
 prove_from_known_facts(Clause, FactList, Truth) :-
   prove_from_known_facts(Clause, FactList, [], _Proof, Truth).
