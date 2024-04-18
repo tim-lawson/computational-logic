@@ -87,9 +87,9 @@ prove_question_tree(Question, Output) :-
 
 % --- Meta-interpreter ---
 
-%% prove_from_known_facts(+Clause:atom, +FactList:list, -ProofList:list, -Proof)
+%% prove_from_known_facts(+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom, -Truth:atom)
 %
-% The prove_from_known_facts/4 predicate tries to prove a clause based on a list of facts.
+% The prove_from_known_facts/5 predicate tries to prove a clause based on a list of facts.
 % If the clause can be proved, it stores the proof in the output. The proof is a list of
 % steps, where each step is a fact that was used to prove the clause.
 %
@@ -124,6 +124,7 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   utils:find_clause((default(Clause) :- Body), Fact, FactList),
   utils:write_debug("Found default clause"), utils:write_debug((default(Clause) :- Body)),
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
+
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
   % Nested case, e.g. default(negate(...))
   utils:find_clause((default(Clause)), Fact, FactList),
@@ -135,7 +136,8 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
   utils:find_clause(negate(Clause :- Body), Fact, FactList),
   utils:write_debug("Found negate clause"), utils:write_debug((negate(Clause :- Body))),
   prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, true).
-  % if the body is true, then the clause is false. However, if the body is false, we cannot necessarily conclude that the clause is true.
+  % If the body is true, then the clause is false.
+  % However, if the body is false, we cannot necessarily conclude that the clause is true.
   % (NextTruth = true -> Truth = false; fail).
 
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-

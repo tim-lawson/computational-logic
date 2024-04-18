@@ -52,12 +52,13 @@ proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
 
-%% verb_phrase(?Number:atom, ?Word:atom)//
+%% verb_phrase(?Number:atom, ?Truth:atom, ?Word:atom)//
 %
 % The verb_phrase//2 DCG rule defines verb phrases. It relates the verb phrase's
 % grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
+% @param Truth The truth-value of the verb phrase.
 % @param Word The adjective or verb.
 %
 
@@ -100,12 +101,13 @@ property(Number, Adjective) --> adjective(Number, Adjective).
 property(singular, Noun) --> [a], noun(singular, Noun).
 property(plural, Noun) --> noun(plural, Noun).
 
-%% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
+%% determiner(?Number:atom, ?Truth:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
 %
 % The determiner//4 DCG rule defines determiners. It relates the determiner's
 % grammatical number, its body, its head, and a list of rules that refer to it.
 %
 % @param ?Number The grammatical number.
+% @param Truth The truth-value of the determiner.
 % @param ?Body The body of the rule.
 % @param ?Head The head of the rule.
 % @param ?Rule The rule.
@@ -114,8 +116,8 @@ property(plural, Noun) --> noun(plural, Noun).
 % If the determiner is like "all", then the body of the rule implies the head.
 determiner(singular, true, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, true, X => Body, X => Head, [(Head :- Body)]) --> [all].
-% Every Body (e.g. human) does not Head (e.g. flies) implies Head and Body are different,
-% e.g. negate(human(X) :- flies(X)).
+
+% Every Body (e.g. human) does not Head (e.g. flies) implies Head and Body are different, e.g. negate(human(X) :- flies(X)).
 determiner(singular, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [every].
 determiner(plural, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [all].
 
@@ -123,7 +125,8 @@ determiner(plural, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [a
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
-% TODO: I don't think we can stack these like this unless we add logic in the engine to unpack them. They'll just never match.
+
+% TODO: I don't think we can stack these unless there's logic in the engine to unpack them -- they just won't match.
 determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [most].
 determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [many].
 determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [a, lot, of].
@@ -181,6 +184,7 @@ intransitive_verb(singular, X) -->
       predicate_to_grammar(_Predicate, 1, verb/Verb, X),
       verb_plural_to_singular(Verb, SingularVerb)
   }.
+
 % Plural verbs.
 intransitive_verb(plural, X) -->
   [Verb],

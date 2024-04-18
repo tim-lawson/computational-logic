@@ -105,8 +105,8 @@ If the question can be proved, it transforms each step of the proof into a sente
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{4}{+Clause:atom, +FactList:list, -ProofList:list, -Proof}
-The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
+    \predicate[private]{prove_from_known_facts}{5}{+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom, -Truth:atom}
+The \predref{prove_from_known_facts}{5} predicate tries to prove a clause based on a list of facts.
 If the clause can be proved, it stores the proof in the output. The proof is a list of
 steps, where each step is a fact that was used to prove the clause.
 
@@ -114,7 +114,8 @@ steps, where each step is a fact that was used to prove the clause.
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use. \\
 \arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
-\arg{\Sminus} & \arg{Proof}: The generated proof.
+\arg{\Sminus} & \arg{Proof}: The generated proof. \\
+\arg{\Sminus} & \arg{Truth}: The truth-value of the clause.
   \\
 \end{arguments}
 
@@ -150,6 +151,15 @@ The \predref{add_clause_to_facts}{3} predicate adds a clause to a list of facts.
 \arg{\Splus} & \arg{Clause}: The clause. \\
 \arg{\Splus} & \arg{FactListOld}: The list of facts to update. \\
 \arg{\Sminus} & \arg{FactListNew}: The updated list of facts.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_known_fact}{2}{+Fact:atom, -Output:string}
+The \predref{output_known_fact}{2} predicate transforms a known fact into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Fact}: The fact. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
 
@@ -190,12 +200,13 @@ grammatical number, its atom, and a list of atoms that refer to it.
   \\
 \end{arguments}
 
-    \dcg[private]{verb_phrase}{2}{?Number:atom, ?Word:atom}
+    \dcg[private]{verb_phrase}{3}{?Number:atom, ?Truth:atom, ?Word:atom}
 The \dcgref{verb_phrase}{2} DCG rule defines verb phrases. It relates the verb phrase's
 grammatical number, its atom, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{Number} & The grammatical number. \\
+\arg{Truth} & The truth-value of the verb phrase. \\
 \arg{Word} & The adjective or verb.
   \\
 \end{arguments}
@@ -210,12 +221,13 @@ number, its atom, and a list of atoms that refer to it.
   \\
 \end{arguments}
 
-    \dcg[private]{determiner}{4}{?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
+    \dcg[private]{determiner}{5}{?Number:atom, ?Truth:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
 The \dcgref{determiner}{4} DCG rule defines determiners. It relates the determiner's
 grammatical number, its body, its head, and a list of rules that refer to it.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
+\arg{Truth} & The truth-value of the determiner. \\
 \arg{\Squest} & \arg{Body} The body of the rule. \\
 \arg{\Squest} & \arg{Head} The head of the rule. \\
 \arg{\Squest} & \arg{Rule} The rule.
@@ -314,9 +326,7 @@ The \dcgref{question_body}{1} DCG rule parses a list of atoms into the body of a
 The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence body.
 
 \begin{arguments}
-\arg{Sentence} & The list of atoms.
-
-"Determiner Noun VerbPhrase" sentences. \\
+\arg{Sentence} & The list of atoms. \\
 \end{arguments}
 \end{description}
 
@@ -346,11 +356,12 @@ given clause and stores the fact in the output.
 \arg{\Splus} & \arg{FactList}: The list of facts to search. \\
 \end{arguments}
 
-    \predicate[private]{transform}{2}{+Term:atom, -ClauseList:list}
+    \predicate[private]{transform}{3}{+Term:atom, +Truth:atom, -ClauseList:list}
 The \predref{transform}{2} predicate transforms a term into a list of clauses.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Term}: The term to transform. \\
+\arg{\Splus} & \arg{Truth}: The truth-value of the term. \\
 \arg{\Sminus} & \arg{ClauseList}: The list of clauses generated based on the term. \\
 \end{arguments}
 
@@ -362,6 +373,5 @@ The \predref{try}{1} predicate tries to prove a goal.
 \end{arguments}
 
     \predicate[private]{write_debug}{1}{+X}
-The \predref{write_debug}{1} predicate writes a debug message to the console.
 \end{description}
 
