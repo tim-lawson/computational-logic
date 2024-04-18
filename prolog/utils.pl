@@ -78,7 +78,8 @@ transform((Term1, Term2), Truth, [(Term1 :- Truth)|Rest]) :-
   transform(Term2, Truth, Rest).
 
 % Recursive case: If the term is not a conjunction, transform it into a clause.
-transform(Term, Truth, [(Term :- Truth)]).
+transform(Term, true, [(Term :- true)]).
+transform(Term, false, [(negate(Term :- true))]).
 
 %% try(+X)
 %
