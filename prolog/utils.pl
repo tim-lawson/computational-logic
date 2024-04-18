@@ -63,23 +63,21 @@ find_clause(Clause, Fact, [Fact|_FactList]) :-
 find_clause(Clause, Fact, [_Fact|FactList]) :-
   find_clause(Clause, Fact, FactList).
 
-%% transform(+Term:atom, +Truth:atom, -ClauseList:list)
+%% transform(+Term:atom, -ClauseList:list)
 %
 % The transform/2 predicate transforms a term into a list of clauses.
 %
 % @param +Term: The term to transform.
-% @param +Truth: The truth-value of the term.
 % @param -ClauseList: The list of clauses generated based on the term.
 %
 
-% Base case: If the term is a conjunction, transform each conjunct.
-transform((Term1, Term2), Truth, [(Term1 :- Truth)|Rest]) :-
+% Recursive case: If the term is a conjunction, transform each conjunct.
+transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
   !,
-  transform(Term2, Truth, Rest).
+  transform(Term2, Rest).
 
-% Recursive case: If the term is not a conjunction, transform it into a clause.
-transform(Term, true, [(Term :- true)]).
-transform(Term, false, [(negate(Term :- true))]).
+% Base case: If the term is not a conjunction, transform it into a clause.
+transform(Term, [(Term :- true)]).
 
 %% try(+X)
 %

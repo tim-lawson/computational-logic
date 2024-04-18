@@ -52,42 +52,41 @@ proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
 
-%% verb_phrase(?Number:atom, ?Truth:atom, ?Word:atom)//
+%% verb_phrase(?Number:atom, ?Word:atom)//
 %
 % The verb_phrase//2 DCG rule defines verb phrases. It relates the verb phrase's
 % grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
-% @param Truth The truth-value of the verb phrase.
 % @param Word The adjective or verb.
 %
 
-verb_phrase(singular, false, Adjective) -->
-    [is, not],
-    property(singular, Adjective).
-
-verb_phrase(singular, true, Adjective) -->
+verb_phrase(singular, Property) -->
     [is],
-    property(singular, Adjective).
+    property(singular, Property).
 
-verb_phrase(plural, false, Adjective) -->
-    [are, not],
-    property(plural, Adjective).
+verb_phrase(singular, negate(Property)) -->
+    [is, not],
+    property(singular, Property).
 
-verb_phrase(plural, true, Adjective) -->
+verb_phrase(plural, Property) -->
     [are],
-    property(plural, Adjective).
+    property(plural, Property).
 
-verb_phrase(singular, false, IntransitiveVerb) -->
+verb_phrase(plural, negate(Property)) -->
+    [are, not],
+    property(plural, Property).
+
+verb_phrase(Number, IntransitiveVerb) -->
+    intransitive_verb(Number, IntransitiveVerb).
+
+verb_phrase(singular, negate(IntransitiveVerb)) -->
     [does, not],
     intransitive_verb(plural, IntransitiveVerb).
 
-verb_phrase(plural, false, IntransitiveVerb) -->
+verb_phrase(plural, IntransitiveVerb) -->
     [do, not],
-    intransitive_verb(plural, IntransitiveVerb).
-
-verb_phrase(Number, _Truth, IntransitiveVerb) -->
-    intransitive_verb(Number, IntransitiveVerb).
+    intransitive_verb(plural, negate(IntransitiveVerb)).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -101,35 +100,28 @@ property(Number, Adjective) --> adjective(Number, Adjective).
 property(singular, Noun) --> [a], noun(singular, Noun).
 property(plural, Noun) --> noun(plural, Noun).
 
-%% determiner(?Number:atom, ?Truth:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
+%% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
 %
 % The determiner//4 DCG rule defines determiners. It relates the determiner's
-% grammatical number, its body, its head, and a list of rules that refer to it.
+% grammatical number, its body, its head, and a list of atoms that refer to it.
 %
 % @param ?Number The grammatical number.
-% @param Truth The truth-value of the determiner.
-% @param ?Body The body of the rule.
-% @param ?Head The head of the rule.
+% @param ?Body The relation between a proposition X and the body of the rule.
+% @param ?Head The relation between a proposition X and the head of the rule.
 % @param ?Rule The rule.
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, true, X => Body, X => Head, [(Head :- Body)]) --> [every].
-determiner(plural, true, X => Body, X => Head, [(Head :- Body)]) --> [all].
+determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
+determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 
-% Every Body (e.g. human) does not Head (e.g. flies) implies Head and Body are different, e.g. negate(human(X) :- flies(X)).
-determiner(singular, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [every].
-determiner(plural, false, X => Body, X => Head, [(negate(Head :- Body))]) --> [all].
+determiner(singular, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [every].
+determiner(plural, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
-determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
-determiner(plural, true, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
-
-% TODO: I don't think we can stack these unless there's logic in the engine to unpack them -- they just won't match.
-determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [most].
-determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [many].
-determiner(plural, false, X => Body, X => Head, [default((negate(Head :- Body)))]) --> [a, lot, of].
+determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
+determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
+determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 
 %% adjective(?Number:atom, ?Word:atom)//
 %

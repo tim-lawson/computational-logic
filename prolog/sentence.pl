@@ -32,14 +32,19 @@ sentence_word --> [that].
 %
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, Truth, X, Y, Sentence),
-  grammar:noun(Number, X),
-  grammar:verb_phrase(Number, Truth, Y).
+  grammar:determiner(Number, XBody, XHead, Sentence),
+  grammar:noun(Number, XBody),
+  grammar:verb_phrase(Number, XHead).
+
+sentence_body(Sentence) -->
+  grammar:determiner(Number, XBody, X => negate(Head), Sentence),
+  grammar:noun(Number, XBody),
+  grammar:verb_phrase(Number, negate(X => Head)).
 
 sentence_body([Literal :- true]) -->
-  grammar:proper_noun(Noun, X),
-  grammar:verb_phrase(Noun, true, X => Literal).
+  grammar:proper_noun(Number, Noun),
+  grammar:verb_phrase(Number, Noun => Literal).
 
-sentence_body([negate(Literal :- true)]) -->
-  grammar:proper_noun(Noun, X),
-  grammar:verb_phrase(Noun, false, X => Literal).
+sentence_body([negate(Literal) :- true]) -->
+  grammar:proper_noun(Number, X),
+  grammar:verb_phrase(Number, negate(X => Literal)).
