@@ -121,20 +121,25 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof, Truth
 
 % Try to prove using default reasoning.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
+  % Try to find a clause of the form 'if Body then default Clause'.
   utils:find_clause((default(Clause) :- Body), Fact, FactList),
-  utils:write_debug("Found default clause"), utils:write_debug((default(Clause) :- Body)),
+  utils:write_debugs(['found default clause', (default(Clause) :- Body)]),
+  % Try to prove the body of the clause.
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof, Truth).
 
 % Try to prove using negation.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, false) :-
+  % Try to find a clause of the form 'if Body then not Clause'.
   utils:find_clause(negate(Clause :- Body), Fact, FactList),
-  utils:write_debug("Found negate clause"), utils:write_debug((negate(Clause :- Body))),
+  utils:write_debugs(['found negate clause', negate(Clause :- Body)]),
+  % Try to prove the body of the clause.
   prove_from_known_facts(Body, FactList, [proof(negate(Clause, Body), Fact)|ProofList], Proof, true).
 
+% Try to prove the clause.
 prove_from_known_facts(Clause, FactList, ProofList, Proof, Truth) :-
-  % Try to prove the clause (find a clause of the form 'if Body then Clause').
+  % Try to find a clause of the form 'if Body then Clause'.
   utils:find_clause((Clause :- Body), Fact, FactList),
-  utils:write_debug("Found clause"), utils:write_debug((Clause :- Body)),
+  utils:write_debugs(['found clause', (Clause :- Body)]),
   % Try to prove the body of the clause.
   prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof, Truth).
 
@@ -190,11 +195,7 @@ find_known_facts_noun(ProperNoun, Output) :-
         atomic_list_concat(OutputList, '. ', Output)
   ).
 
-proof_step_message(unknown(Fact), Output):-
-  known_fact_output([(Fact :- true)], FactOutput),
-  % If the fact is not known, store a default response in the output.
-  atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
-
+% TODO: I don't know if this is used.
 proof_step_message(unknown(Fact), Output):-
   known_fact_output([(Fact :- true)], FactOutput),
   % If the fact is not known, store a default response in the output.
@@ -268,6 +269,7 @@ output_known_fact(Fact, Output) :-
 output_proof(proof(_, Fact), Output) :-
   engine:output_known_fact(Fact, Output).
 
+% TODO: I don't know if this is used.
 output_proof(unknown(Fact), Output):-
   engine:output_known_fact([(Fact :- true)], FactOutput),
   % If the fact is not known, store a default response in the output.

@@ -89,9 +89,20 @@ transform(Term, false, [(negate(Term :- true))]).
 %
 try(X):- \+ \+ X.
 
-%% write_debug(+X)
+%% write_debugs(+List)
+%
+% The write_debugs/1 predicate writes a list of debug messages to the console.
+%
+% @param List: A list of debug messages.
+%
+write_debugs([]).
+write_debugs([X|Rest]) :- write_debug(X), write_debugs(Rest).
 
+%% write_debug(+X)
+%
 % The write_debug/1 predicate writes a debug message to the console.
+%
+% @param X: The debug message.
 %
 write_debug(X) :-
     % If debug outputs are enabled...
