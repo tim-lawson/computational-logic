@@ -16,8 +16,8 @@ If the input is `stop', the predicate terminates.
 Otherwise, it calls itself to read the next line of input.
 
     \predicate[private]{handle_input}{2}{+Input:string, -Output:string}
-The \predref{handle_input}{2} predicate is the main entry point for handling user input.
-It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+The \predref{handle_input}{2} predicate preprocesses the input and tries to parse it as either a
+sentence, a question, or command.
 If the input cannot be parsed, it outputs a default message.
 
 \begin{arguments}
@@ -77,7 +77,7 @@ engine module and stores the generated output.
     \predicate{prove_question}{2}{+Question:atom, -Output:string}
 The \predref{prove_question}{2} predicate tries to prove a question from the known facts.
 If the question can be proved, it is transformed into a sentence output.
-Otherwise, a default response is output.
+Otherwise, it outputs a default response.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
@@ -86,7 +86,8 @@ Otherwise, a default response is output.
 \end{arguments}
 
     \predicate{prove_question_list}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_list}{2} predicate is equivalent to \predref{prove_question}{2}, except it outputs the empty string when the question cannot be proved.
+The \predref{prove_question_list}{2} predicate is equivalent to \predref{prove_question}{2}, except it
+outputs the empty string when the question cannot be proved.
 This predicate is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
 
 \begin{arguments}
@@ -96,8 +97,10 @@ This predicate is suitable for use with maplist, such as in \predref{find_known_
 \end{arguments}
 
     \predicate{prove_question_tree}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that constructs a proof tree.
-If the question can be proved, it transforms each step of the proof into a sentence and concatenates the sentences into the output.
+The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that
+constructs a proof tree.
+If the question can be proved, it transforms each step of the proof into a sentence
+and concatenates the sentences into the output.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
@@ -105,21 +108,30 @@ If the question can be proved, it transforms each step of the proof into a sente
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{5}{+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom, -Truth:atom}
-The \predref{prove_from_known_facts}{5} predicate tries to prove a clause based on a list of facts.
-If the clause can be proved, it stores the proof in the output. The proof is a list of
-steps, where each step is a fact that was used to prove the clause.
+    \predicate[private]{prove_from_known_facts}{4}{+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom}
+The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
+If the clause can be proved, it stores the proof in the output.
+The proof is a list of steps, where each step is a fact that was used to prove the clause.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use. \\
 \arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
-\arg{\Sminus} & \arg{Proof}: The generated proof. \\
-\arg{\Sminus} & \arg{Truth}: The truth-value of the clause.
+\arg{\Sminus} & \arg{Proof}: The generated proof.
   \\
 \end{arguments}
 
-    \predicate[private]{find_known_facts}{1}{-Output}
+    \predicate[private]{prove_from_known_facts}{2}{+Clause:atom, +FactList:list}
+The \predref{prove_from_known_facts}{3} predicate is an entry point to the
+\predref{prove_from_known_facts}{4} predicate that does not store the proof.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Clause}: The clause to prove. \\
+\arg{\Splus} & \arg{FactList}: The list of facts to use.
+  \\
+\end{arguments}
+
+    \predicate[private]{find_known_facts}{1}{-Output:str}
 The \predref{find_known_facts}{1} predicate finds all known facts and transforms them into sentences.
 
 \begin{arguments}
@@ -127,8 +139,9 @@ The \predref{find_known_facts}{1} predicate finds all known facts and transforms
   \\
 \end{arguments}
 
-    \predicate[private]{find_known_facts_noun}{2}{+ProperNoun, -Output}
-The \predref{find_known_facts_noun}{2} predicate finds all known facts with a proper-noun argument and transforms them into sentences.
+    \predicate[private]{find_known_facts_noun}{2}{+ProperNoun:atom, -Output:str}
+The \predref{find_known_facts_noun}{2} predicate finds all known facts with a proper-noun argument
+and transforms them into sentences.
 
 \begin{arguments}
 \arg{\Splus} & \arg{ProperNoun}: The proper noun. \\
@@ -200,13 +213,12 @@ grammatical number, its atom, and a list of atoms that refer to it.
   \\
 \end{arguments}
 
-    \dcg[private]{verb_phrase}{3}{?Number:atom, ?Truth:atom, ?Word:atom}
+    \dcg[private]{verb_phrase}{2}{?Number:atom, ?Word:atom}
 The \dcgref{verb_phrase}{2} DCG rule defines verb phrases. It relates the verb phrase's
 grammatical number, its atom, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{Number} & The grammatical number. \\
-\arg{Truth} & The truth-value of the verb phrase. \\
 \arg{Word} & The adjective or verb.
   \\
 \end{arguments}
@@ -221,15 +233,14 @@ number, its atom, and a list of atoms that refer to it.
   \\
 \end{arguments}
 
-    \dcg[private]{determiner}{5}{?Number:atom, ?Truth:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
+    \dcg[private]{determiner}{4}{?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
 The \dcgref{determiner}{4} DCG rule defines determiners. It relates the determiner's
-grammatical number, its body, its head, and a list of rules that refer to it.
+grammatical number, its corresponding rule, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
-\arg{Truth} & The truth-value of the determiner. \\
-\arg{\Squest} & \arg{Body} The body of the rule. \\
-\arg{\Squest} & \arg{Head} The head of the rule. \\
+\arg{\Squest} & \arg{Body} The relation between a proposition X and the body of the rule. \\
+\arg{\Squest} & \arg{Head} The relation between a proposition X and the head of the rule. \\
 \arg{\Squest} & \arg{Rule} The rule.
   \\
 \end{arguments}
@@ -356,12 +367,11 @@ given clause and stores the fact in the output.
 \arg{\Splus} & \arg{FactList}: The list of facts to search. \\
 \end{arguments}
 
-    \predicate[private]{transform}{3}{+Term:atom, +Truth:atom, -ClauseList:list}
+    \predicate[private]{transform}{2}{+Term:atom, -ClauseList:list}
 The \predref{transform}{2} predicate transforms a term into a list of clauses.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Term}: The term to transform. \\
-\arg{\Splus} & \arg{Truth}: The truth-value of the term. \\
 \arg{\Sminus} & \arg{ClauseList}: The list of clauses generated based on the term. \\
 \end{arguments}
 
@@ -372,6 +382,18 @@ The \predref{try}{1} predicate tries to prove a goal.
 \arg{X} & The goal to prove. \\
 \end{arguments}
 
+    \predicate[private]{write_debugs}{1}{+List}
+The \predref{write_debugs}{1} predicate writes a list of debug messages to the console.
+
+\begin{arguments}
+\arg{List} & : A list of debug messages. \\
+\end{arguments}
+
     \predicate[private]{write_debug}{1}{+X}
+The \predref{write_debug}{1} predicate writes a debug message to the console.
+
+\begin{arguments}
+\arg{X} & : The debug message. \\
+\end{arguments}
 \end{description}
 
