@@ -35,9 +35,11 @@ negation(negation(X)) :- X.
 
 predicate(bird, 1, [noun/bird]).
 predicate(fly, 1, [verb/fly]).
+predicate(happy, 1, [adj/happy]).
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
 predicate(penguin, 1, [noun/penguin]).
+predicate(teacher, 1, [noun/teacher]).
 
 % --- Vocabulary and grammar ---
 
@@ -52,6 +54,7 @@ predicate(penguin, 1, [noun/penguin]).
 proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
+proper_noun(singular, donald) --> [donald].
 
 %% verb_phrase(?Number:atom, ?Word:atom)//
 %
