@@ -34,25 +34,27 @@ question_body(Question) -->
   [who],
   grammar:verb_phrase(singular, _X => Question).
 
-% "Is ProperNoun (not) Property?" questions.
+% "Is ProperNoun Property?" questions.
 question_body(Question) -->
   [is],
   grammar:proper_noun(Number, Noun),
   grammar:property(Number, Noun => Question).
 
-question_body(negate(Question)) -->
+% "Is ProperNoun not Property?" questions.
+question_body(negation(Question)) -->
   [is],
   grammar:proper_noun(Number, Noun),
   [not],
   grammar:property(Number, Noun => Question).
 
-% "Does ProperNoun (not) VerbPhrase?" questions.
+% "Does ProperNoun VerbPhrase?" questions.
 question_body(Question) -->
   [does],
   grammar:proper_noun(_, Noun),
   grammar:verb_phrase(_, Noun => Question).
 
-question_body(negate(Question)) -->
+% "Does ProperNoun not VerbPhrase?" questions.
+question_body(negation(Question)) -->
   [does],
   grammar:proper_noun(_, Noun),
   [not],

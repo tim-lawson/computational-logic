@@ -17,6 +17,9 @@
 % equivalent to `a => (b => c)`.
 :- op(600, xfy, ' => ').
 
+% The negation of a negation is equivalent to the original proposition.
+negation(negation(X)) :- X.
+
 % --- Predicates ---
 
 %% predicate(-Predicate:atom, -Arity:integer, -Words:list)
@@ -60,15 +63,15 @@ proper_noun(singular, charlie) --> [charlie].
 %
 
 verb_phrase(singular, Property) --> [is], property(singular, Property).
-verb_phrase(singular, negate(Property)) --> [is, not], property(singular, Property).
+verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
 
 verb_phrase(plural, Property) --> [are], property(plural, Property).
-verb_phrase(plural, negate(Property)) --> [are, not], property(plural, Property).
+verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
 
 verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
-verb_phrase(singular, negate(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
-verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negate(IntransitiveVerb)).
+verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
+verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -81,10 +84,10 @@ verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, n
 property(Number, Adjective) --> adjective(Number, Adjective).
 
 property(singular, Noun) --> [a], noun(singular, Noun).
-property(singular, negate(Noun)) --> [not, a], noun(singular, Noun).
+property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
 
 property(plural, Noun) --> noun(plural, Noun).
-property(plural, negate(Noun)) --> [not], noun(plural, Noun).
+property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 
 %% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
 %
@@ -102,8 +105,8 @@ determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 
 % If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [every].
-determiner(plural, X => Body, X => negate(Head), [(negate(Head :- Body))]) --> [all].
+determiner(singular, X => Body, X => negation(Head), [(negation(Head :- Body))]) --> [every].
+determiner(plural, X => Body, X => negation(Head), [(negation(Head :- Body))]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].

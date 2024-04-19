@@ -50,24 +50,23 @@ cli :-
 % @param -Output The generated or default output.
 %
 handle_input(Input, Output) :-
-  utils:write_debug('trying to handle input...'),
+  % utils:write_debug('trying to handle input...'),
   preprocess_input(Input, InputList),
-
-  (   utils:write_debug('trying to parse as sentence...'),
+  (
+      % utils:write_debug('trying to parse as sentence...'),
       phrase(sentence:sentence(Sentence), InputList),
       handle_sentence(Sentence, Output)
-
-  ;   utils:write_debug('trying to parse as question...'),
+  ;
+      % utils:write_debug('trying to parse as question...'),
       phrase(question:question(Question), InputList),
       handle_question(Question, Output)
-
-  ;   utils:write_debug('trying to parse as command...'),
+  ;
+      % utils:write_debug('trying to parse as command...'),
       phrase(command:command(goal(Command, Output)), InputList),
       utils:write_debug(goal(Command, Output)),
       call(Command) -> true
-
   ;   otherwise ->
-      utils:write_debug('could not parse...'),
+      % utils:write_debug('could not parse...'),
       atomic_list_concat(['I do not understand.'], ' ', Output)
   ).
 

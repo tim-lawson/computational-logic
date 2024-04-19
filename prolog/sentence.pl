@@ -37,14 +37,14 @@ sentence_body(Sentence) -->
   grammar:verb_phrase(Number, XHead).
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, XBody, X => negate(Head), Sentence),
+  grammar:determiner(Number, XBody, X => negation(Head), Sentence),
   grammar:noun(Number, XBody),
-  grammar:verb_phrase(Number, negate(X => Head)).
+  grammar:verb_phrase(Number, negation(X => Head)).
 
 sentence_body([Literal :- true]) -->
   grammar:proper_noun(Number, Noun),
   grammar:verb_phrase(Number, Noun => Literal).
 
-sentence_body([negate(Literal) :- true]) -->
+sentence_body([negation(Literal) :- true]) -->
   grammar:proper_noun(Number, X),
-  grammar:verb_phrase(Number, negate(X => Literal)).
+  grammar:verb_phrase(Number, negation(X => Literal)).
