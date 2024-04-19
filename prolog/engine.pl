@@ -31,7 +31,7 @@ prove_question(Question, Output) :-
   ( % Try to prove the question based on the known facts.
     engine:prove_from_known_facts(Question, FactList) ->
       engine:output_answer(Question, Output)
-  ; % Try to prove the negation of the question...
+  ; % Try to prove the negation of the question.
     engine:prove_from_known_facts(negation(Question), FactList) ->
       engine:output_answer(negation(Question), Output)
   ; % If the question cannot be proved, output a default response.
@@ -53,7 +53,7 @@ prove_question_list(Question, Output) :-
   ( % Try to prove the question based on the known facts.
     engine:prove_from_known_facts(Question, FactList) ->
       engine:output_answer(Question, Output)
-  ; % Try to prove the negation of the question...
+  ; % Try to prove the negation of the question.
     engine:prove_from_known_facts(negation(Question), FactList) ->
       engine:output_answer(negation(Question), Output)
   ; % If the question cannot be proved, output the empty string.
@@ -74,17 +74,11 @@ prove_question_tree(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   ( % Try to prove the question based on the known facts.
-    prove_from_known_facts(Question, FactList, [], ProofList) ->
-      % If the question can be proved, transform each step of the proof into a sentence.
-      maplist(output_proof, ProofList, OutputListTemp),
-      % Transform the last step of the proof into a sentence.
-      phrase(sentence:sentence_body([(Question :- true)]), Clause),
-      % Transform the clause into a sentence.
-      atomic_list_concat([therefore|Clause], ' ', LastClause),
-      % Append the last step to the output.
-      append(OutputListTemp, [LastClause], OutputList),
-      % Transform the sentences into strings.
-      atomic_list_concat(OutputList, ', ', Output)
+    engine:prove_from_known_facts(Question, FactList, [], ProofList) ->
+      output_proof_list(Question, ProofList, Output)
+  ; % Try to prove the negation of the question.
+    engine:prove_from_known_facts(negation(Question), FactList, [], ProofList) ->
+      output_proof_list(negation(Question), ProofList, Output)
   ; % If the question cannot be proved, output a default response.
     Output = 'I do not think that is true.'
   ).
@@ -238,6 +232,43 @@ add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
 % Base case: If the body is not a conjunction, add it to the list of facts.
 add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 
+%% output_proof_list(+Question:atom, +ProofList:list, -Output:string)
+%
+% The output_proof_list/2 predicate transforms a question and its proof list into a
+% string output.
+%
+% @param +Question: The question.
+% @param +ProofList: The proof list.
+% @param -Output: The generated output.
+%
+output_proof_list(Question, ProofList, Output) :-
+  % Transform each step of the proof into a sentence.
+  maplist(engine:output_proof, ProofList, OutputListProof),
+  % Transform the question into a clause.
+  phrase(sentence:sentence_body([(Question :- true)]), Clause),
+  % Transform the clause into a sentence.
+  atomic_list_concat([therefore|Clause], ' ', Sentence),
+  % Append the sentence to the output.
+  append(OutputListProof, [Sentence], OutputList),
+  % Transform the sentences into strings.
+  atomic_list_concat(OutputList, ', ', Output).
+
+%% output_proof(+Proof:atom, -Output:string)
+%
+% The output_proof/2 predicate transforms a proof step into a string output.
+%
+% @param +Proof: The proof step.
+% @param -Output: The generated output.
+%
+output_proof(proof(_, Fact), Output) :-
+  engine:output_known_fact(Fact, Output).
+
+% TODO: I don't know if this is used.
+output_proof(unknown(Fact), Output):-
+  engine:output_known_fact([(Fact :- true)], FactOutput),
+  % If the fact is not known, output a default response.
+  atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
+
 %% output_answer(+Question:atom, -Output:string)
 %
 % The output_answer/2 predicate transforms a question answer into a string output.
@@ -265,19 +296,3 @@ output_known_fact(Fact, Output) :-
   phrase(sentence:sentence_body(Fact), Sentence),
   % Transform the sentence into a string.
   atomics_to_string(Sentence, ' ', Output).
-
-%% output_proof(+Proof:atom, -Output:string)
-%
-% The output_proof/2 predicate transforms a proof step into a string output.
-%
-% @param +Proof: The proof step.
-% @param -Output: The generated output.
-%
-output_proof(proof(_, Fact), Output) :-
-  engine:output_known_fact(Fact, Output).
-
-% TODO: I don't know if this is used.
-output_proof(unknown(Fact), Output):-
-  engine:output_known_fact([(Fact :- true)], FactOutput),
-  % If the fact is not known, output a default response.
-  atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
