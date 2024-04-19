@@ -63,7 +63,6 @@ handle_input(Input, Output) :-
   ;
       % utils:write_debug('trying to parse as command...'),
       phrase(command:command(goal(Command, Output)), InputList),
-      utils:write_debug(goal(Command, Output)),
       call(Command) -> true
   ;   otherwise ->
       % utils:write_debug('could not parse...'),
@@ -95,7 +94,7 @@ preprocess_input(Input, Output) :-
 % @param -Output The generated output.
 %
 handle_sentence(Sentence, Output) :-
-  utils:write_debug(fact(Sentence)),
+  utils:write_debug(Sentence),
   % If the fact is already known, respond accordingly.
   (   engine:is_fact_known(Sentence) ->
       atomic_list_concat(['I know that.'], ' ', Output)
