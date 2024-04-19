@@ -116,65 +116,65 @@ determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 
-%% adjective(?Number:atom, ?X:atom)//
+%% adjective(?Number:atom, ?ToLiteral:atom)//
 %
 % The adjective//2 DCG rule defines adjectives.
-% It relates the adjective's grammatical number and its literal.
+% It relates the adjective, its grammatical number, and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?X The adjective => literal.
+% @param ?ToLiteral The adjective and its literal.
 %
-adjective(_, X) -->
+adjective(_, ToLiteral) -->
   [Adjective],
   {
-      predicate_to_grammar(_Predicate, 1, adj/Adjective, X)
+      predicate_to_grammar(_Predicate, 1, adj/Adjective, ToLiteral)
   }.
 
-%% noun(?Number:atom, ?X:atom)//
+%% noun(?Number:atom, ?ToLiteral:atom)//
 %
 % The noun//2 DCG rule defines common nouns.
-% It relates the noun's grammatical number and its literal.
+% It relates the noun, its grammatical number, and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?X The noun => literal.
+% @param ?ToLiteral The noun and its literal.
 %
 
 % Singular nouns.
-noun(singular, X) -->
+noun(singular, ToLiteral) -->
   [SingularNoun],
   {
-      predicate_to_grammar(_Predicate, 1, noun/SingularNoun, X)
+      predicate_to_grammar(_Predicate, 1, noun/SingularNoun, ToLiteral)
   }.
 % Plural nouns.
-noun(plural, X) -->
+noun(plural, ToLiteral) -->
   [PluralNoun],
   {
-      predicate_to_grammar(_Predicate, 1, noun/Noun, X),
+      predicate_to_grammar(_Predicate, 1, noun/Noun, ToLiteral),
       noun_singular_to_plural(Noun, PluralNoun)
   }.
 
-%% intransitive_verb(?Number:atom, ?X:atom)//
+%% intransitive_verb(?Number:atom, ?ToLiteral:atom)//
 %
 % The intransitive_verb//2 DCG rule defines intransitive verbs.
-% It relates the verb's grammatical number and its literal.
+% It relates the verb, its grammatical number, and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?X The intransitive verb => literal.
+% @param ?ToLiteral The intransitive verb and its literal.
 %
 
 % Singular verbs.
-intransitive_verb(singular, X) -->
+intransitive_verb(singular, ToLiteral) -->
   [SingularVerb],
   {
-      predicate_to_grammar(_Predicate, 1, verb/Verb, X),
+      predicate_to_grammar(_Predicate, 1, verb/Verb, ToLiteral),
       verb_plural_to_singular(Verb, SingularVerb)
   }.
 
 % Plural verbs.
-intransitive_verb(plural, X) -->
+intransitive_verb(plural, ToLiteral) -->
   [Verb],
   {
-      predicate_to_grammar(_Predicate, 1, verb/Verb, X)
+      predicate_to_grammar(_Predicate, 1, verb/Verb, ToLiteral)
   }.
 
 % --- Grammatical number ---
@@ -214,7 +214,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 
 % --- Logic ---
 
-%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -XLiteral:callable)
+%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:callable)
 %
 % The predicate_to_grammar/4 predicate constructs a literal from a predicate and an
 % argument.
@@ -222,7 +222,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 % @param Predicate The predicate.
 % @param Arity The number of arguments the predicate takes.
 % @param WordCategory The word category.
-% @param XLiteral The literal.
+% @param ToLiteral The word and its literal.
 %
 predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
   % If predicate is a unary predicate of arity 1 and...

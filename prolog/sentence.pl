@@ -15,7 +15,7 @@
 %
 % The sentence//1 DCG rule parses a list of atoms into a sentence.
 %
-% @param The list of atoms.
+% @param Sentence The list of atoms.
 %
 sentence(Sentence) -->
   sentence_word,

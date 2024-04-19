@@ -18,7 +18,7 @@ debug_enabled(on).
 % Store known facts.
 :- dynamic known_fact/1.
 
-%% concatenate_conjunctive(+ListX, +ListY, -ListZ)
+%% concatenate_conjunctive(+ListX:list, +ListY:list, -ListZ:list)
 %
 % The concatenate_conjunctive/3 predicate concatenates two lists of literals.
 %
@@ -43,15 +43,14 @@ concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
 %% find_clause(+Clause:atom, +Fact:atom, +FactList:list)
 %
 % The find_clause/3 predicate finds a clause in the list of facts that unifies with the
-% given clause and stores the fact in the output.
-% It avoids instantiating a fact.
+% given clause and outputs the fact (without instantiating it).
 %
 % @param +Clause: The clause to find.
-% @param +Fact: The fact to store in the output.
+% @param +Fact: The output fact.
 % @param +FactList: The list of facts to search.
 %
 
-% Base case: If the clause is found, store the fact in the output.
+% Base case: If the clause is found, output the fact.
 find_clause(Clause, Fact, [Fact|_FactList]) :-
   % Avoid instantiating Fact!
   copy_term(Fact, [Clause]).
@@ -78,17 +77,18 @@ transform(Term, [(Term :- true)]).
 
 %% try(+X)
 %
-% The try/1 predicate tries to prove a goal by negation-as-failure.
+% The try/1 predicate tries to prove a goal.
+% The double use of the negation-as-failure oeprator undoes bindings of variables.
 %
 % @param X The goal to prove.
 %
 try(X):- \+ \+ X.
 
-%% write_debugs(+List)
+%% write_debugs(+ListX:list)
 %
 % The write_debugs/1 predicate writes a list of debug messages to the console.
 %
-% @param List: A list of debug messages.
+% @param ListX: A list of debug messages.
 %
 write_debugs([]).
 write_debugs([X|Rest]) :- write_debug(X), write_debugs(Rest).

@@ -121,8 +121,8 @@ The proof is a list of steps, where each step is a fact that was used to prove t
 \end{arguments}
 
     \predicate[private]{prove_from_known_facts}{2}{+Clause:atom, +FactList:list}
-The \predref{prove_from_known_facts}{2} predicate is equivalent to \predref{prove_from_known_facts}{4},
-except it does not store the proof, i.e. only the answer is needed.
+The \predref{prove_from_known_facts}{2} predicate also tries to prove a clause, but it does not
+store the proof, i.e. only the answer is needed.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
@@ -168,26 +168,6 @@ The \predref{add_clause_to_facts}{3} predicate adds a clause to a list of facts.
   \\
 \end{arguments}
 
-    \predicate[private]{output_proof_list}{3}{+Question:atom, +ProofList:list, -Output:string}
-The \predref{output_proof_list}{2} predicate transforms a question and its proof list into a
-string output.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Question}: The question. \\
-\arg{\Splus} & \arg{ProofList}: The proof list. \\
-\arg{\Sminus} & \arg{Output}: The generated output.
-  \\
-\end{arguments}
-
-    \predicate[private]{output_proof}{2}{+Proof:atom, -Output:string}
-The \predref{output_proof}{2} predicate transforms a proof step into a string output.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Proof}: The proof step. \\
-\arg{\Sminus} & \arg{Output}: The generated output.
-  \\
-\end{arguments}
-
     \predicate[private]{output_answer}{2}{+Question:atom, -Output:string}
 The \predref{output_answer}{2} predicate transforms a question answer into a string output.
 
@@ -201,7 +181,26 @@ The \predref{output_answer}{2} predicate transforms a question answer into a str
 The \predref{output_known_fact}{2} predicate transforms a known fact into a string output.
 
 \begin{arguments}
-\arg{\Splus} & \arg{Fact}: The fact. \\
+\arg{\Splus} & \arg{Fact}: The known fact. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_proof}{2}{+Proof:atom, -Output:string}
+The \predref{output_proof}{2} predicate transforms a proof step into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Proof}: The proof step. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_proof_list}{3}{+Question:atom, +ProofList:list, -Output:string}
+The \predref{output_proof_list}{2} predicate transforms a question and a proof list into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Question}: The question. \\
+\arg{\Splus} & \arg{ProofList}: The proof list. \\
 \arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
@@ -266,33 +265,33 @@ grammatical number, its corresponding rule, and a list of atoms that refer to it
   \\
 \end{arguments}
 
-    \dcg[private]{adjective}{2}{?Number:atom, ?X:atom}
+    \dcg[private]{adjective}{2}{?Number:atom, ?ToLiteral:atom}
 The \dcgref{adjective}{2} DCG rule defines adjectives.
-It relates the adjective's grammatical number and its literal.
+It relates the adjective, its grammatical number, and its literal.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
-\arg{\Squest} & \arg{X} The adjective \Sssu{} literal.
+\arg{\Squest} & \arg{ToLiteral} The adjective and its literal.
   \\
 \end{arguments}
 
-    \dcg[private]{noun}{2}{?Number:atom, ?X:atom}
+    \dcg[private]{noun}{2}{?Number:atom, ?ToLiteral:atom}
 The \dcgref{noun}{2} DCG rule defines common nouns.
-It relates the noun's grammatical number and its literal.
+It relates the noun, its grammatical number, and its literal.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
-\arg{\Squest} & \arg{X} The noun \Sssu{} literal.
+\arg{\Squest} & \arg{ToLiteral} The noun and its literal.
   \\
 \end{arguments}
 
-    \dcg[private]{intransitive_verb}{2}{?Number:atom, ?X:atom}
+    \dcg[private]{intransitive_verb}{2}{?Number:atom, ?ToLiteral:atom}
 The \dcgref{intransitive_verb}{2} DCG rule defines intransitive verbs.
-It relates the verb's grammatical number and its literal.
+It relates the verb, its grammatical number, and its literal.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
-\arg{\Squest} & \arg{X} The intransitive verb \Sssu{} literal.
+\arg{\Squest} & \arg{ToLiteral} The intransitive verb and its literal.
   \\
 \end{arguments}
 
@@ -316,7 +315,7 @@ singular form and vice versa.
   \\
 \end{arguments}
 
-    \predicate{predicate_to_grammar}{4}{+Predicate:atom, +Arity:integer, +WordCategory:atom, -XLiteral:callable}
+    \predicate{predicate_to_grammar}{4}{+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:callable}
 The \predref{predicate_to_grammar}{4} predicate constructs a literal from a predicate and an
 argument.
 
@@ -324,7 +323,7 @@ argument.
 \arg{Predicate} & The predicate. \\
 \arg{Arity} & The number of arguments the predicate takes. \\
 \arg{WordCategory} & The word category. \\
-\arg{XLiteral} & The literal.
+\arg{ToLiteral} & The word and its literal.
   \\
 \end{arguments}
 \end{description}
@@ -358,7 +357,7 @@ The \dcgref{question_body}{1} DCG rule parses a list of atoms into the body of a
 The \dcgref{sentence}{1} DCG rule parses a list of atoms into a sentence.
 
 \begin{arguments}
-\arg{The} & list of atoms. \\
+\arg{Sentence} & The list of atoms. \\
 \end{arguments}
 
     \dcg{sentence_body}{1}{?Sentence:list}
@@ -374,7 +373,7 @@ The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence bo
 \label{sec:utils}
 
 \begin{description}
-    \predicate{concatenate_conjunctive}{3}{+ListX, +ListY, -ListZ}
+    \predicate{concatenate_conjunctive}{3}{+ListX:list, +ListY:list, -ListZ:list}
 The \predref{concatenate_conjunctive}{3} predicate concatenates two lists of literals.
 
 \begin{arguments}
@@ -385,12 +384,11 @@ The \predref{concatenate_conjunctive}{3} predicate concatenates two lists of lit
 
     \predicate[private]{find_clause}{3}{+Clause:atom, +Fact:atom, +FactList:list}
 The \predref{find_clause}{3} predicate finds a clause in the list of facts that unifies with the
-given clause and stores the fact in the output.
-It avoids instantiating a fact.
+given clause and outputs the fact (without instantiating it).
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to find. \\
-\arg{\Splus} & \arg{Fact}: The fact to store in the output. \\
+\arg{\Splus} & \arg{Fact}: The output fact. \\
 \arg{\Splus} & \arg{FactList}: The list of facts to search. \\
 \end{arguments}
 
@@ -403,17 +401,18 @@ The \predref{transform}{2} predicate transforms a term into a list of clauses.
 \end{arguments}
 
     \predicate{try}{1}{+X}
-The \predref{try}{1} predicate tries to prove a goal by negation-as-failure.
+The \predref{try}{1} predicate tries to prove a goal.
+The double use of the negation-as-failure oeprator undoes bindings of variables.
 
 \begin{arguments}
 \arg{X} & The goal to prove. \\
 \end{arguments}
 
-    \predicate[private]{write_debugs}{1}{+List}
+    \predicate[private]{write_debugs}{1}{+ListX:list}
 The \predref{write_debugs}{1} predicate writes a list of debug messages to the console.
 
 \begin{arguments}
-\arg{List} & : A list of debug messages. \\
+\arg{ListX} & : A list of debug messages. \\
 \end{arguments}
 
     \predicate[private]{write_debug}{1}{+X}

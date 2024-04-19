@@ -110,6 +110,7 @@ prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
   % Try to prove the concatenated clauses.
   prove_from_known_facts(Body2, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
 
+% TODO: Add comments.
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
   utils:find_clause((default(Clause) :- Body), Fact, FactList),
   prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof).
@@ -124,8 +125,8 @@ prove_from_known_facts(negation(Clause), FactList, ProofList, Proof) :-
 
 %% prove_from_known_facts(+Clause:atom, +FactList:list)
 %
-% The prove_from_known_facts/2 predicate is equivalent to prove_from_known_facts/4,
-% except it does not store the proof, i.e. only the answer is needed.
+% The prove_from_known_facts/2 predicate also tries to prove a clause, but it does not
+% store the proof, i.e. only the answer is needed.
 %
 % @param +Clause: The clause to prove.
 % @param +FactList: The list of facts to use.
@@ -233,43 +234,6 @@ add_clause_to_facts((Conjunct1, Conjunct2), FactListOld, FactListNew) :-
 % Base case: If the body is not a conjunction, add it to the list of facts.
 add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 
-%% output_proof_list(+Question:atom, +ProofList:list, -Output:string)
-%
-% The output_proof_list/2 predicate transforms a question and its proof list into a
-% string output.
-%
-% @param +Question: The question.
-% @param +ProofList: The proof list.
-% @param -Output: The generated output.
-%
-output_proof_list(Question, ProofList, Output) :-
-  % Transform each step of the proof into a sentence.
-  maplist(engine:output_proof, ProofList, OutputListProof),
-  % Transform the question into a clause.
-  phrase(sentence:sentence_body([(Question :- true)]), Clause),
-  % Transform the clause into a sentence.
-  atomic_list_concat([therefore|Clause], ' ', Sentence),
-  % Append the sentence to the output.
-  append(OutputListProof, [Sentence], OutputList),
-  % Transform the sentences into strings.
-  atomic_list_concat(OutputList, ', ', Output).
-
-%% output_proof(+Proof:atom, -Output:string)
-%
-% The output_proof/2 predicate transforms a proof step into a string output.
-%
-% @param +Proof: The proof step.
-% @param -Output: The generated output.
-%
-output_proof(proof(_, Fact), Output) :-
-  engine:output_known_fact(Fact, Output).
-
-% TODO: I don't know if this is used.
-output_proof(unknown(Fact), Output):-
-  engine:output_known_fact([(Fact :- true)], FactOutput),
-  % If the fact is not known, output a default response.
-  atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
-
 %% output_answer(+Question:atom, -Output:string)
 %
 % The output_answer/2 predicate transforms a question answer into a string output.
@@ -289,7 +253,7 @@ output_answer(Question, Output) :-
 %
 % The output_known_fact/2 predicate transforms a known fact into a string output.
 %
-% @param +Fact: The fact.
+% @param +Fact: The known fact.
 % @param -Output: The generated output.
 %
 output_known_fact(Fact, Output) :-
@@ -297,3 +261,39 @@ output_known_fact(Fact, Output) :-
   phrase(sentence:sentence_body(Fact), Sentence),
   % Transform the sentence into a string.
   atomics_to_string(Sentence, ' ', Output).
+
+%% output_proof(+Proof:atom, -Output:string)
+%
+% The output_proof/2 predicate transforms a proof step into a string output.
+%
+% @param +Proof: The proof step.
+% @param -Output: The generated output.
+%
+output_proof(proof(_, Fact), Output) :-
+  engine:output_known_fact(Fact, Output).
+
+% TODO: I don't know if this is used.
+output_proof(unknown(Fact), Output):-
+  engine:output_known_fact([(Fact :- true)], FactOutput),
+  % If the fact is not known, output a default response.
+  atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
+
+%% output_proof_list(+Question:atom, +ProofList:list, -Output:string)
+%
+% The output_proof_list/2 predicate transforms a question and a proof list into a string output.
+%
+% @param +Question: The question.
+% @param +ProofList: The proof list.
+% @param -Output: The generated output.
+%
+output_proof_list(Question, ProofList, Output) :-
+  % Transform each step of the proof into a sentence.
+  maplist(engine:output_proof, ProofList, OutputListProof),
+  % Transform the question into a clause.
+  phrase(sentence:sentence_body([(Question :- true)]), Clause),
+  % Transform the clause into a sentence.
+  atomic_list_concat([therefore|Clause], ' ', Sentence),
+  % Append the sentence to the output.
+  append(OutputListProof, [Sentence], OutputList),
+  % Transform the sentences into strings.
+  atomic_list_concat(OutputList, ', ', Output).
