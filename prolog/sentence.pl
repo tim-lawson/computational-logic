@@ -46,5 +46,5 @@ sentence_body([Literal :- true]) -->
   grammar:verb_phrase(Number, Noun => Literal).
 
 sentence_body([negation(Literal) :- true]) -->
-  grammar:proper_noun(Number, X),
-  grammar:verb_phrase(Number, negation(X => Literal)).
+  grammar:proper_noun(Number, Noun),
+  grammar:verb_phrase(Number, negation(Noun => Literal)).

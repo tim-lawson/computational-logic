@@ -122,8 +122,8 @@ The proof is a list of steps, where each step is a fact that was used to prove t
 \end{arguments}
 
     \predicate[private]{prove_from_known_facts}{2}{+Clause:atom, +FactList:list}
-The \predref{prove_from_known_facts}{3} predicate is an entry point to the
-\predref{prove_from_known_facts}{4} predicate that does not store the proof.
+The \predref{prove_from_known_facts}{2} predicate is an entry point to the \predref{prove_from_known_facts}{4}
+predicate that does not store the proof.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
@@ -167,11 +167,13 @@ The \predref{add_clause_to_facts}{3} predicate adds a clause to a list of facts.
   \\
 \end{arguments}
 
-    \predicate[private]{output_known_fact}{2}{+Fact:atom, -Output:string}
-The \predref{output_known_fact}{2} predicate transforms a known fact into a string output.
+    \predicate[private]{output_proof_list}{3}{+Question:atom, +ProofList:list, -Output:string}
+The \predref{output_proof_list}{2} predicate transforms a question and its proof list into a
+string output.
 
 \begin{arguments}
-\arg{\Splus} & \arg{Fact}: The fact. \\
+\arg{\Splus} & \arg{Question}: The question. \\
+\arg{\Splus} & \arg{ProofList}: The proof list. \\
 \arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
@@ -181,6 +183,24 @@ The \predref{output_proof}{2} predicate transforms a proof step into a string ou
 
 \begin{arguments}
 \arg{\Splus} & \arg{Proof}: The proof step. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_answer}{2}{+Question:atom, -Output:string}
+The \predref{output_answer}{2} predicate transforms a question answer into a string output.
+
+\begin{arguments}
+\arg{\Splus} & Result: The question. \\
+\arg{\Sminus} & \arg{Output}: The generated output.
+  \\
+\end{arguments}
+
+    \predicate[private]{output_known_fact}{2}{+Fact:atom, -Output:string}
+The \predref{output_known_fact}{2} predicate transforms a known fact into a string output.
+
+\begin{arguments}
+\arg{\Splus} & \arg{Fact}: The fact. \\
 \arg{\Sminus} & \arg{Output}: The generated output.
   \\
 \end{arguments}
