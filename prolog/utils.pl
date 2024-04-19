@@ -20,12 +20,13 @@ debug_enabled(on).
 
 %% concatenate_conjunctive(+ListX, +ListY, -ListZ)
 %
-% The concatenate_conjunctive/3 predicate concatenates two lists of conjunctive literals.
+% The concatenate_conjunctive/3 predicate concatenates two lists of literals.
 %
 % @param ListX The first list.
 % @param ListY The second list.
 % @param ListZ The concatenated list.
 %
+
 % Base case: List is the conjunctive concatenation of true and List.
 concatenate_conjunctive(true, List, List).
 % Single-element case: (X, List) is the conjunctive concatenation of X and List if...
@@ -43,6 +44,7 @@ concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
 %
 % The find_clause/3 predicate finds a clause in the list of facts that unifies with the
 % given clause and stores the fact in the output.
+% It avoids instantiating a fact.
 %
 % @param +Clause: The clause to find.
 % @param +Fact: The fact to store in the output.
@@ -76,7 +78,7 @@ transform(Term, [(Term :- true)]).
 
 %% try(+X)
 %
-% The try/1 predicate tries to prove a goal.
+% The try/1 predicate tries to prove a goal by negation-as-failure.
 %
 % @param X The goal to prove.
 %

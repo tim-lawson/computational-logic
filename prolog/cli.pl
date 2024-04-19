@@ -20,7 +20,6 @@
 %
 % The cli/0 predicate is the main entry point for the command-line interface.
 % It reads a line of user input, determines the corresponding output, and prints the output.
-%
 % If the input is `stop', the predicate terminates.
 % Otherwise, it calls itself to read the next line of input.
 %
@@ -106,7 +105,7 @@ handle_sentence(Sentence, Output) :-
 %% handle_question(+Question:list, -Output:string)
 %
 % The handle_question/2 predicate handles a question input.
-% It tries to prove the question using the question-answering engine.
+% It tries to prove the question and/or its negation with the question-answering engine.
 %
 % @param +Question The question (a list of atoms).
 % @param -Output The generated output.

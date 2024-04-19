@@ -11,7 +11,7 @@
 
 % --- Sentence parser ---
 
-% sentence(Sentence:list)//
+%% sentence(?Sentence:list)//
 %
 % The sentence//1 DCG rule parses a list of atoms into a sentence.
 %
@@ -24,7 +24,7 @@ sentence(Sentence) -->
 sentence_word --> [].
 sentence_word --> [that].
 
-%% sentence_body(Sentence:list)//
+%% sentence_body(?Sentence:list)//
 %
 % The sentence_body//1 DCG rule parses a list of atoms into a sentence body.
 %

@@ -62,7 +62,7 @@ proper_noun(singular, donald) --> [donald].
 % grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
-% @param Word The adjective or verb.
+% @param Word The property or verb.
 %
 
 verb_phrase(singular, Property) --> [is], property(singular, Property).
@@ -98,8 +98,8 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 % grammatical number, its corresponding rule, and a list of atoms that refer to it.
 %
 % @param ?Number The grammatical number.
-% @param ?Body The relation between a proposition X and the body of the rule.
-% @param ?Head The relation between a proposition X and the head of the rule.
+% @param ?Body The relation between X and the body of the rule.
+% @param ?Head The relation between X and the head of the rule.
 % @param ?Rule The rule.
 %
 
@@ -116,13 +116,13 @@ determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 
-%% adjective(?Number:atom, ?Word:atom)//
+%% adjective(?Number:atom, ?X:atom)//
 %
-% The adjective//2 DCG rule defines adjectives. It relates the adjective's grammatical
-% number, its atom, and a list of atoms that refer to it.
+% The adjective//2 DCG rule defines adjectives.
+% It relates the adjective's grammatical number and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?Word The adjective.
+% @param ?X The adjective => literal.
 %
 adjective(_, X) -->
   [Adjective],
@@ -130,13 +130,13 @@ adjective(_, X) -->
       predicate_to_grammar(_Predicate, 1, adj/Adjective, X)
   }.
 
-%% noun(?Number:atom, ?Word:atom)//
+%% noun(?Number:atom, ?X:atom)//
 %
-% The noun//2 DCG rule defines nouns. It relates the noun's grammatical number and
-% its literal.
+% The noun//2 DCG rule defines common nouns.
+% It relates the noun's grammatical number and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?Word The literal.
+% @param ?X The noun => literal.
 %
 
 % Singular nouns.
@@ -153,13 +153,13 @@ noun(plural, X) -->
       noun_singular_to_plural(Noun, PluralNoun)
   }.
 
-%% intransitive_verb(?Number:atom, ?Word:atom)//
+%% intransitive_verb(?Number:atom, ?X:atom)//
 %
-% The intransitive_verb//2 DCG rule defines intransitive verbs. It relates the verb's
-% grammatical number and its literal.
+% The intransitive_verb//2 DCG rule defines intransitive verbs.
+% It relates the verb's grammatical number and its literal.
 %
 % @param ?Number The grammatical number.
-% @param ?Word The literal.
+% @param ?X The intransitive verb => literal.
 %
 
 % Singular verbs.
@@ -214,7 +214,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 
 % --- Logic ---
 
-%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -Literal:callable)
+%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -XLiteral:callable)
 %
 % The predicate_to_grammar/4 predicate constructs a literal from a predicate and an
 % argument.
@@ -222,7 +222,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 % @param Predicate The predicate.
 % @param Arity The number of arguments the predicate takes.
 % @param WordCategory The word category.
-% @param Literal The literal.
+% @param XLiteral The literal.
 %
 predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
   % If predicate is a unary predicate of arity 1 and...

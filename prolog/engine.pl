@@ -19,7 +19,7 @@
 %% prove_question(+Question:atom, -Output:string)
 %
 % The prove_question/2 predicate tries to prove a question from the known facts.
-% If the question can be proved, it is transformed into a sentence output.
+% If the question can be proved either way, it outputs the answer.
 % Otherwise, it outputs a default response.
 %
 % @param +Question: The question to prove.
@@ -34,14 +34,14 @@ prove_question(Question, Output) :-
   ; % Try to prove the negation of the question.
     engine:prove_from_known_facts(negation(Question), FactList) ->
       engine:output_answer(negation(Question), Output)
-  ; % If the question cannot be proved, output a default response.
+  ; % If the question cannot be proved either way, output a default response.
     Output = 'I do not know that is true.'
   ).
 
 %% prove_question_list(+Question:atom, -Output:string)
 %
 % The prove_question_list/2 predicate is equivalent to prove_question/2, except it
-% outputs the empty string when the question cannot be proved.
+% outputs the empty string when question cannot be proved either way.
 % This predicate is suitable for use with maplist, such as in find_known_facts_noun/2.
 %
 % @param +Question: The question to prove.
@@ -56,7 +56,7 @@ prove_question_list(Question, Output) :-
   ; % Try to prove the negation of the question.
     engine:prove_from_known_facts(negation(Question), FactList) ->
       engine:output_answer(negation(Question), Output)
-  ; % If the question cannot be proved, output the empty string.
+  ; % If the question cannot be proved either way, output the empty string.
     Output = ''
   ).
 
@@ -64,8 +64,8 @@ prove_question_list(Question, Output) :-
 %
 % The prove_question_tree/2 predicate is an extended version of prove_question/2 that
 % constructs a proof tree.
-% If the question can be proved, it transforms each step of the proof into a sentence
-% and concatenates the sentences into the output.
+% If the question can be proved either way, it transforms each step of the proof into a
+% sentence and concatenates the sentences into the output.
 %
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
@@ -124,8 +124,8 @@ prove_from_known_facts(negation(Clause), FactList, ProofList, Proof) :-
 
 %% prove_from_known_facts(+Clause:atom, +FactList:list)
 %
-% The prove_from_known_facts/2 predicate is an entry point to the prove_from_known_facts/4
-% predicate that does not store the proof.
+% The prove_from_known_facts/2 predicate is equivalent to prove_from_known_facts/4,
+% except it does not store the proof, i.e. only the answer is needed.
 %
 % @param +Clause: The clause to prove.
 % @param +FactList: The list of facts to use.
@@ -135,9 +135,10 @@ prove_from_known_facts(Clause, FactList) :-
 
 % --- Commands ---
 
-%% find_known_facts(-Output:str)
+%% find_known_facts(-Output:string)
 %
-% The find_known_facts/1 predicate finds all known facts and transforms them into sentences.
+% The find_known_facts/1 predicate finds all known facts and transforms the sentences
+% into a string output.
 %
 % @param -Output: The known facts or default response.
 %
@@ -152,10 +153,10 @@ find_known_facts(Output) :-
   ; atomic_list_concat(OutputList, '. ', Output)
   ).
 
-%% find_known_facts_noun(+ProperNoun:atom, -Output:str)
+%% find_known_facts_noun(+ProperNoun:atom, -Output:string)
 %
-% The find_known_facts_noun/2 predicate finds all known facts with a proper-noun argument
-% and transforms them into sentences.
+% The find_known_facts_noun/2 predicate finds all known facts with a proper-noun argument,
+% and transforms the sentences into a string output.
 %
 % @param +ProperNoun: The proper noun.
 % @param -Output: The known facts or default response.
@@ -163,8 +164,7 @@ find_known_facts(Output) :-
 find_known_facts_noun(ProperNoun, Output) :-
   findall(
     Question,
-    (
-      % Find all predicates that take a single argument.
+    ( % Find all predicates that take a single argument.
       grammar:predicate(Predicate, 1, _Words),
       % For each predicate, construct a question with the proper noun as its argument.
       Question=..[Predicate, ProperNoun]
@@ -194,6 +194,7 @@ proof_step_message(unknown(Fact), Output) :-
 %% is_fact_known(+FactList:list)
 %
 % The is_fact_known/2 predicate checks if a fact is known.
+% If the fact itself is not known, it tries to prove it based on the known facts.
 %
 % @param +FactList: The list of facts to check.
 %
