@@ -67,12 +67,10 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param -ClauseList: The list of clauses generated based on the term.
 %
 
-% Recursive case: If the term is a conjunction, transform each conjunct.
 transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
   !,
   transform(Term2, Rest).
 
-% Base case: If the term is not a conjunction, transform it into a clause.
 transform(Term, [(Term :- true)]).
 
 %% try(+X)
