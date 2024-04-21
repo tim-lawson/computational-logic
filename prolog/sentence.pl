@@ -41,6 +41,11 @@ sentence_body(Sentence) -->
   grammar:noun(Number, XBody),
   grammar:verb_phrase(Number, negation(X => Head)).
 
+sentence_body(Sentence) -->
+  grammar:determiner(Number, XBody, X => (Head1; Head2), Sentence),
+  grammar:noun(Number, XBody),
+  grammar:verb_phrase(Number, ((X => Head1); (X => Head2))).
+
 sentence_body([Literal :- true]) -->
   grammar:proper_noun(Number, Noun),
   grammar:verb_phrase(Number, Noun => Literal).
@@ -48,3 +53,7 @@ sentence_body([Literal :- true]) -->
 sentence_body([negation(Literal) :- true]) -->
   grammar:proper_noun(Number, Noun),
   grammar:verb_phrase(Number, negation(Noun => Literal)).
+
+sentence_body([(Literal1; Literal2) :- true]) -->
+  grammar:proper_noun(Number, Noun),
+  grammar:verb_phrase(Number, ((Noun => Literal1); (Noun => Literal2))).
