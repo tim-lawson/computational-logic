@@ -14,6 +14,8 @@
 :- use_module(sentence).
 :- use_module(utils).
 
+negation(negation(X)) :- X.
+
 % --- Question Answering ---
 
 %% prove_question(+Question:atom, -Output:string)
@@ -97,31 +99,56 @@ prove_question_tree(Question, Output) :-
 % @param -Proof: The generated proof.
 %
 
-% Base case: If the clause is true, we are done.
+% If the clause is true, we are done.
 prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
 
-% Recursive case: If the clause is a conjunction, try to prove each conjunct.
+% -- Conjunction
 prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
   !,
-  % Try to prove the first conjunct (find a clause of the form 'if Body1 then Conjunct1').
+  % Find a clause of the form 'if Body1 then Conjunct1'.
   utils:find_clause((Conjunct1 :- Body1), Fact, FactList),
-  % Concatenate the body of the proof with the second conjunct.
+  % Concatenate Body1 and Conjunct2 into Body2.
   utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
-  % Try to prove the concatenated clauses.
+  % Try to prove Body2. If the proof succeeds, then we have proven (Conjunct1, Conjunct2).
   prove_from_known_facts(Body2, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
 
-% TODO: Add comments.
+% -- Default reasoning
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+  % Find a clause of the form 'if Body then default(Clause)'.
   utils:find_clause((default(Clause) :- Body), Fact, FactList),
-  prove_from_known_facts(Body, FactList, [proof((Clause :- Body), Fact)|ProofList], Proof).
+  % Try to prove Body. If the proof succeeds, then we have proven default(Clause).
+  prove_from_known_facts(Body, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
 
+% -- Implication
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+  % Find a clause of the form 'if Body then Clause'.
   utils:find_clause((Clause :- Body), Fact, FactList),
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
   prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
+% -- Negation (modus tollens)
 prove_from_known_facts(negation(Clause), FactList, ProofList, Proof) :-
+  % Find a clause of the form 'if Clause then Body'.
   utils:find_clause((Body :- Clause), Fact, FactList),
-  prove_from_known_facts(negation(Body), FactList, [proof(Clause, Fact)|ProofList], Proof).
+  % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.
+  prove_from_known_facts(negation(Body), FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
+
+% -- Disjunction (positive case)
+prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+  ( % Find a disjunctive rule of the form 'if Body then (Clause; Other)'.
+    utils:find_clause(((Clause; Other) :- Body), Fact, FactList)
+    % Find a disjunctive rule of the form 'if Body then (Other; Clause)'.
+  ; utils:find_clause(((Other; Clause) :- Body), Fact, FactList)
+  ),
+  % Try to prove Body. If the proof succeeds, then we have proven (Clause; Other).
+  prove_from_known_facts(Body, FactList, [], A),
+  % Try to prove negation(Other). If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(negation(Other), FactList, [], B),
+  !,
+  % Concatenate the proofs of the Body, negation(Other), and Clause itself.
+  append(A, B, C),
+  append(C, ProofList, D),
+  Proof = [proof(Clause, Fact)|D].
 
 %% prove_from_known_facts(+Clause:atom, +FactList:list)
 %
@@ -183,12 +210,6 @@ find_known_facts_noun(ProperNoun, Output) :-
     otherwise ->
       atomic_list_concat(OutputList, '. ', Output)
   ).
-
-% TODO: I don't know if this is used.
-proof_step_message(unknown(Fact), Output) :-
-  known_fact_output([(Fact :- true)], FactOutput),
-  % If the fact is not known, output a default response.
-  atomic_list_concat(['I do not know that', FactOutput], ' ', Output).
 
 % --- Facts ---
 
@@ -269,12 +290,12 @@ output_known_fact(Fact, Output) :-
 % @param +Proof: The proof step.
 % @param -Output: The generated output.
 %
-output_proof(proof(_, Fact), Output) :-
+output_proof(proof(_Clause, Fact), Output) :-
   engine:output_known_fact(Fact, Output).
 
 % TODO: I don't know if this is used.
-output_proof(unknown(Fact), Output):-
-  engine:output_known_fact([(Fact :- true)], FactOutput),
+output_proof(proof(_Clause, Fact), Output):-
+  engine:output_known_fact(Fact, FactOutput),
   % If the fact is not known, output a default response.
   atomic_list_concat([FactOutput, 'I do not know that is true.'], ' ', Output).
 

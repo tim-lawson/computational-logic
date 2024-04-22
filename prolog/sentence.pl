@@ -32,19 +32,28 @@ sentence_word --> [that].
 %
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, XBody, XHead, Sentence),
-  grammar:noun(Number, XBody),
-  grammar:verb_phrase(Number, XHead).
+  grammar:determiner(Number, ToBody, ToHead, Sentence),
+  grammar:noun(Number, ToBody),
+  grammar:verb_phrase(Number, ToHead).
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, XBody, X => negation(Head), Sentence),
-  grammar:noun(Number, XBody),
+  grammar:determiner(Number, ToBody, X => negation(Head), Sentence),
+  grammar:noun(Number, ToBody),
   grammar:verb_phrase(Number, negation(X => Head)).
 
-sentence_body([Literal :- true]) -->
-  grammar:proper_noun(Number, Noun),
-  grammar:verb_phrase(Number, Noun => Literal).
+sentence_body(Sentence) -->
+  grammar:determiner(Number, ToBody, X => (Head1; Head2), Sentence),
+  grammar:noun(Number, ToBody),
+  grammar:verb_phrase(Number, ((X => Head1); (X => Head2))).
 
-sentence_body([negation(Literal) :- true]) -->
-  grammar:proper_noun(Number, Noun),
-  grammar:verb_phrase(Number, negation(Noun => Literal)).
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, X),
+  grammar:verb_phrase(Number, X => Head).
+
+sentence_body([negation(Head) :- true]) -->
+  grammar:proper_noun(Number, X),
+  grammar:verb_phrase(Number, negation(X => Head)).
+
+sentence_body([(Head1; Head2) :- true]) -->
+  grammar:proper_noun(Number, X),
+  grammar:verb_phrase(Number, ((X => Head1); (X => Head2))).

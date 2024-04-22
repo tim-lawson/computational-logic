@@ -33,13 +33,24 @@ negation(negation(X)) :- X.
 % @param Words A list of words that refer to the logical entity.
 %
 
-predicate(bird, 1, [noun/bird]).
-predicate(fly, 1, [verb/fly]).
-predicate(happy, 1, [adj/happy]).
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
+
+predicate(bird, 1, [noun/bird]).
 predicate(penguin, 1, [noun/penguin]).
+predicate(fly, 1, [verb/fly]).
+
+predicate(happy, 1, [adj/happy]).
 predicate(teacher, 1, [noun/teacher]).
+
+predicate(pixel, 1, [noun/pixel]).
+predicate(red, 1, [adj/red]).
+predicate(green, 1, [adj/green]).
+predicate(blue, 1, [adj/blue]).
+
+predicate(coin, 1, [noun/coin]).
+predicate(heads, 1, [adj/heads]).
+predicate(tails, 1, [adj/tails]).
 
 % --- Vocabulary and grammar ---
 
@@ -54,7 +65,10 @@ predicate(teacher, 1, [noun/teacher]).
 proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
+
 proper_noun(singular, donald) --> [donald].
+
+proper_noun(singular, pixie) --> [pixie].
 
 %% verb_phrase(?Number:atom, ?Word:atom)//
 %
@@ -67,9 +81,11 @@ proper_noun(singular, donald) --> [donald].
 
 verb_phrase(singular, Property) --> [is], property(singular, Property).
 verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
+verb_phrase(singular, (Property1; Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
 
 verb_phrase(plural, Property) --> [are], property(plural, Property).
 verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
+verb_phrase(plural, (Property1; Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
 verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
@@ -108,13 +124,16 @@ determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
 determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
 
 % If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => negation(Head), [(negation(Head :- Body))]) --> [every].
-determiner(plural, X => Body, X => negation(Head), [(negation(Head :- Body))]) --> [all].
+determiner(singular, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [every].
+determiner(plural, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
+
+determiner(singular, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [every].
+determiner(plural, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [all].
 
 %% adjective(?Number:atom, ?ToLiteral:atom)//
 %
