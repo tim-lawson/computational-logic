@@ -42,9 +42,9 @@ sentence_body(Sentence) -->
   grammar:verb_phrase(Number, negation(X => Head)).
 
 sentence_body(Sentence) -->
-  grammar:determiner(Number, ToBody, X => (Head1; Head2), Sentence),
+  grammar:determiner(Number, ToBody, X => disjunction(Head1, Head2), Sentence),
   grammar:noun(Number, ToBody),
-  grammar:verb_phrase(Number, ((X => Head1); (X => Head2))).
+  grammar:verb_phrase(Number, (disjunction((X => Head1), (X => Head2)))).
 
 sentence_body([Head :- true]) -->
   grammar:proper_noun(Number, X),
@@ -54,6 +54,6 @@ sentence_body([negation(Head) :- true]) -->
   grammar:proper_noun(Number, X),
   grammar:verb_phrase(Number, negation(X => Head)).
 
-sentence_body([(Head1; Head2) :- true]) -->
+sentence_body([disjunction(Head1, Head2) :- true]) -->
   grammar:proper_noun(Number, X),
-  grammar:verb_phrase(Number, ((X => Head1); (X => Head2))).
+  grammar:verb_phrase(Number, (disjunction((X => Head1), (X => Head2)))).

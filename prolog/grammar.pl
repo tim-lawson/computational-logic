@@ -81,11 +81,11 @@ proper_noun(singular, pixie) --> [pixie].
 
 verb_phrase(singular, Property) --> [is], property(singular, Property).
 verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
-verb_phrase(singular, (Property1; Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
+verb_phrase(singular, disjunction(Property1, Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
 
 verb_phrase(plural, Property) --> [are], property(plural, Property).
 verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
-verb_phrase(plural, (Property1; Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
+verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
 verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
@@ -132,8 +132,8 @@ determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 
-determiner(singular, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [every].
-determiner(plural, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [all].
+determiner(singular, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [every].
+determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
 
 %% adjective(?Number:atom, ?ToLiteral:atom)//
 %

@@ -135,12 +135,12 @@ prove_from_known_facts(negation(Clause), FactList, ProofList, Proof) :-
 
 % -- Disjunction (positive case)
 prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
-  ( % Find a disjunctive rule of the form 'if Body then (Clause; Other)'.
-    utils:find_clause(((Clause; Other) :- Body), Fact, FactList)
-    % Find a disjunctive rule of the form 'if Body then (Other; Clause)'.
-  ; utils:find_clause(((Other; Clause) :- Body), Fact, FactList)
+  ( % Find a disjunctive rule of the form 'if Body then Clause xor Other'.
+    utils:find_clause((disjunction(Clause, Other) :- Body), Fact, FactList)
+    % Find a disjunctive rule of the form 'if Body then Other xor Clause'.
+  ; utils:find_clause((disjunction(Other, Clause) :- Body), Fact, FactList)
   ),
-  % Try to prove Body. If the proof succeeds, then we have proven (Clause; Other).
+  % Try to prove Body. If the proof succeeds, then we have proven Clause xor Other and vice versa.
   prove_from_known_facts(Body, FactList, [], A),
   % Try to prove negation(Other). If the proof succeeds, then we have proven Clause.
   prove_from_known_facts(negation(Other), FactList, [], B),
