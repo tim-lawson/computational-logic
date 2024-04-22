@@ -29,30 +29,21 @@ negation(negation(X)) :- X.
 % @param -Output: The generated output.
 %
 prove_question(Question, Output) :-
-  % Find all known facts.
-  findall(Fact, utils:known_fact(Fact), FactList),
+  prove_question_list(Question, MaybeEmpty),
   (
-    engine:prove_from_known_facts(Question, true, FactList) ->
-      engine:output_answer(Question, Output)
+    % If the question can be proved either way, output the answer.
+    MaybeEmpty \= '' -> Output = MaybeEmpty
   ;
-    engine:prove_from_known_facts(negation(Question), true, FactList) ->
-      engine:output_answer(negation(Question), Output)
-  ;
-    engine:prove_from_known_facts(Question, false, FactList) ->
-      engine:output_answer(negation(Question), Output)
-  ;
-    engine:prove_from_known_facts(negation(Question), false, FactList) ->
-      engine:output_answer(Question, Output)
-  ;
-    % If the question cannot be proved either way, output a default response.
+    % Otherwise, output a default response.
     Output = 'I do not know whether that is true or false.'
   ).
 
 %% prove_question_list(+Question:atom, -Output:string)
 %
-% The prove_question_list/2 predicate is equivalent to prove_question/2, except it
-% outputs the empty string when question cannot be proved either way.
-% This predicate is suitable for use with maplist, such as in find_known_facts_noun/2.
+% The prove_question_list/2 predicate tries to prove a question from the known facts.
+% If the question can be proved either way, it outputs the answer.
+% Otherwise, it outputs the empty string.
+% It is suitable for use with maplist, such as in find_known_facts_noun/2.
 %
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
@@ -61,15 +52,19 @@ prove_question_list(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   (
+    % Try to prove the question is true.
     engine:prove_from_known_facts(Question, true, FactList) ->
       engine:output_answer(Question, Output)
   ;
+    % Try to prove the negation of the question is true.
     engine:prove_from_known_facts(negation(Question), true, FactList) ->
       engine:output_answer(negation(Question), Output)
   ;
+    % Try to prove the question is false.
     engine:prove_from_known_facts(Question, false, FactList) ->
       engine:output_answer(negation(Question), Output)
   ;
+    % Try to prove the negation of the question is false.
     engine:prove_from_known_facts(negation(Question), false, FactList) ->
       engine:output_answer(Question, Output)
   ;
@@ -91,15 +86,19 @@ prove_question_tree(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   (
+    % Try to prove the question is true.
     engine:prove_from_known_facts(Question, true, FactList, [], ProofList) ->
       engine:output_proof_list(Question, ProofList, Output)
   ;
+    % Try to prove the negation of the question is true.
     engine:prove_from_known_facts(negation(Question), true, FactList, [], ProofList) ->
       engine:output_proof_list(negation(Question), ProofList, Output)
   ;
+    % Try to prove the question is false.
     engine:prove_from_known_facts(Question, false, FactList, [], ProofList) ->
       engine:output_proof_list(negation(Question), ProofList, Output)
   ;
+    % Try to prove the negation of the question is false.
     engine:prove_from_known_facts(negation(Question), false, FactList, [], ProofList) ->
       engine:output_proof_list(Question, ProofList, Output)
   ;
@@ -109,13 +108,14 @@ prove_question_tree(Question, Output) :-
 
 % --- Meta-interpreter ---
 
-%% prove_from_known_facts(+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom)
+%% prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list, -ProofList:list, -Proof:atom)
 %
 % The prove_from_known_facts/4 predicate tries to prove a clause based on a list of facts.
 % If the clause can be proved, it stores the proof in the output.
 % The proof is a list of steps, where each step is a fact that was used to prove the clause.
 %
 % @param +Clause: The clause to prove.
+% @param +TruthValue: The truth value of the clause (true or false).
 % @param +FactList: The list of facts to use.
 % @param +ProofList: The accumulator for the proof.
 % @param -Proof: The generated proof.
@@ -195,12 +195,13 @@ prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
     debug:debug('engine', 'prove_from_known_facts/disjunction: proved negation(Clause): ~q', [negation(Clause)])
   ).
 
-%% prove_from_known_facts(+Clause:atom, +FactList:list)
+%% prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list)
 %
 % The prove_from_known_facts/2 predicate also tries to prove a clause, but it does not
 % store the proof, i.e. only the answer is needed.
 %
 % @param +Clause: The clause to prove.
+% @param +TruthValue: The truth value of the clause (true or false).
 % @param +FactList: The list of facts to use.
 %
 prove_from_known_facts(Clause, TruthValue, FactList) :-

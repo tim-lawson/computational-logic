@@ -85,9 +85,10 @@ Otherwise, it outputs a default response.
 \end{arguments}
 
     \predicate{prove_question_list}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_list}{2} predicate is equivalent to \predref{prove_question}{2}, except it
-outputs the empty string when question cannot be proved either way.
-This predicate is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
+The \predref{prove_question_list}{2} predicate tries to prove a question from the known facts.
+If the question can be proved either way, it outputs the answer.
+Otherwise, it outputs the empty string.
+It is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Question}: The question to prove. \\
@@ -107,25 +108,27 @@ sentence and concatenates the sentences into the output.
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{4}{+Clause:atom, +FactList:list, -ProofList:list, -Proof:atom}
+    \predicate[private]{prove_from_known_facts}{5}{+Clause:atom, +TruthValue:atom, +FactList:list, -ProofList:list, -Proof:atom}
 The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
 If the clause can be proved, it stores the proof in the output.
 The proof is a list of steps, where each step is a fact that was used to prove the clause.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
+\arg{\Splus} & \arg{TruthValue}: The truth value of the clause (true or false). \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use. \\
 \arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
 \arg{\Sminus} & \arg{Proof}: The generated proof.
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{2}{+Clause:atom, +FactList:list}
+    \predicate[private]{prove_from_known_facts}{3}{+Clause:atom, +TruthValue:atom, +FactList:list}
 The \predref{prove_from_known_facts}{2} predicate also tries to prove a clause, but it does not
 store the proof, i.e. only the answer is needed.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
+\arg{\Splus} & \arg{TruthValue}: The truth value of the clause (true or false). \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use.
   \\
 \end{arguments}
