@@ -49,7 +49,7 @@ prove_question(Question, Output) :-
 % @param -Output: The generated output.
 %
 
-% Negative case.
+% -- Negative
 prove_question_list(negation(Question), Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
@@ -66,7 +66,7 @@ prove_question_list(negation(Question), Output) :-
     Output = ''
   ).
 
-% Positive case.
+% -- Positive
 prove_question_list(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
@@ -94,7 +94,7 @@ prove_question_list(Question, Output) :-
 % @param -Output: The generated output.
 %
 
-% Negative case.
+% -- Negative
 prove_question_tree(negation(Question), Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
@@ -111,7 +111,7 @@ prove_question_tree(negation(Question), Output) :-
     Output = 'I do not know whether that is true or false.'
   ).
 
-% Positive case.
+% -- Positive
 prove_question_tree(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
@@ -178,7 +178,7 @@ prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
   prove_from_known_facts(Body, TruthValue, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
 % -- Negation (modus tollens)
-prove_from_known_facts(negation(Clause), TruthValue, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
   debug:debug('engine', 'negation: trying to prove ~q is ~q', [negation(Clause), TruthValue]),
   % Find a clause of the form 'if Clause then Body'.
   utils:find_clause((Body :- Clause), Fact, FactList),

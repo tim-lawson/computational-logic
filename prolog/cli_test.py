@@ -1,3 +1,5 @@
+"""Test the CLI with input-output pairs."""
+
 import subprocess
 
 
@@ -11,13 +13,13 @@ def cli(*args: tuple[str, str]):
     assert process.stdin is not None
     assert process.stdout is not None
 
-    for input, output in args:
-        process.stdin.write(f"{input}\n")
+    for test_input, test_output in args:
+        process.stdin.write(f"{test_input}\n")
         process.stdin.flush()
 
         stdout = process.stdout.readline()
         process.stdout.flush()
-        assert stdout == f"{output}\n"
+        assert stdout == f"{test_output}\n"
 
     process.communicate()
 
@@ -26,6 +28,8 @@ REMEMBER = "I will remember that."
 
 
 def test_implication():
+    """Test the CLI with implication rules."""
+
     cli(
         ("alice is human", REMEMBER),
         ("every human is mortal", REMEMBER),
@@ -43,14 +47,27 @@ def test_implication():
 
 
 def test_negation():
+    """Test the CLI with negation rules."""
+
     cli(
         ("every teacher is happy", REMEMBER),
         ("donald is not happy", REMEMBER),
         ("is donald a teacher", "donald is not a teacher"),
+        (
+            "explain why donald is a teacher",
+            "donald is not happy, every teacher is happy, therefore donald is not a teacher",
+        ),
+        ("is donald not a teacher", "donald is not a teacher"),
+        (
+            "explain why donald is not a teacher",
+            "donald is not happy, every teacher is happy, therefore donald is not a teacher",
+        ),
     )
 
 
 def test_disjunction():
+    """Test the CLI with disjunction rules."""
+
     cli(
         ("pixie is a pixel", REMEMBER),
         ("every pixel is red or blue", REMEMBER),
