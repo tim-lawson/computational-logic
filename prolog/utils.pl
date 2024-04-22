@@ -13,32 +13,28 @@
 % This predicate controls whether debug outputs are enabled.
 debug_enabled(on).
 
-% --- Operators ---
-
-% A prefix operator for negation, i.e. `not p`.
-:-op(900, fy, not).
-
 % --- Predicates ---
 
 % Store known facts.
 :- dynamic known_fact/1.
 
-%% concatenate_conjunctive(+ListX, +ListY, -ListZ)
+%% concatenate_conjunctive(+ListX:list, +ListY:list, -ListZ:list)
 %
-% The concatenate_conjunctive/3 predicate concatenates two lists of conjunctive literals.
+% The concatenate_conjunctive/3 predicate concatenates two lists of literals.
 %
 % @param ListX The first list.
 % @param ListY The second list.
 % @param ListZ The concatenated list.
 %
+
 % Base case: List is the conjunctive concatenation of true and List.
 concatenate_conjunctive(true, List, List).
 % Single-element case: (X, List) is the conjunctive concatenation of X and List if...
 concatenate_conjunctive(X, List, (X, List)):-
   % X is not true and...
-  not X = true,
+  \+ X = true,
   % X is not a conjunction itself (prevent infinite recursion).
-  not X = (Y, Z).
+  \+ X = (Y, Z).
 % Recursive case: (X, ListZ) is the conjunctive concatenation of (X, ListX) and ListY if...
 concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
   % ListZ is the conjunctive concatenation of ListX and ListY.
@@ -47,14 +43,14 @@ concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
 %% find_clause(+Clause:atom, +Fact:atom, +FactList:list)
 %
 % The find_clause/3 predicate finds a clause in the list of facts that unifies with the
-% given clause and stores the fact in the output.
+% given clause and outputs the fact (without instantiating it).
 %
 % @param +Clause: The clause to find.
-% @param +Fact: The fact to store in the output.
+% @param +Fact: The output fact.
 % @param +FactList: The list of facts to search.
 %
 
-% Base case: If the clause is found, store the fact in the output.
+% Base case: If the clause is found, output the fact.
 find_clause(Clause, Fact, [Fact|_FactList]) :-
   % Avoid instantiating Fact!
   copy_term(Fact, [Clause]).
@@ -71,25 +67,35 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param -ClauseList: The list of clauses generated based on the term.
 %
 
-% Base case: If the term is a conjunction, transform each conjunct.
 transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
   !,
   transform(Term2, Rest).
 
-% Recursive case: If the term is not a conjunction, transform it into a clause.
 transform(Term, [(Term :- true)]).
 
 %% try(+X)
 %
 % The try/1 predicate tries to prove a goal.
+% The double use of the negation-as-failure oeprator undoes bindings of variables.
 %
 % @param X The goal to prove.
 %
-try(X):-not not X.
+try(X):- \+ \+ X.
+
+%% write_debugs(+ListX:list)
+%
+% The write_debugs/1 predicate writes a list of debug messages to the console.
+%
+% @param ListX: A list of debug messages.
+%
+write_debugs([]).
+write_debugs([X|Rest]) :- write_debug(X), write_debugs(Rest).
 
 %% write_debug(+X)
 %
 % The write_debug/1 predicate writes a debug message to the console.
+%
+% @param X: The debug message.
 %
 write_debug(X) :-
     % If debug outputs are enabled...

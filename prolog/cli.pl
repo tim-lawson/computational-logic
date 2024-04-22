@@ -20,7 +20,6 @@
 %
 % The cli/0 predicate is the main entry point for the command-line interface.
 % It reads a line of user input, determines the corresponding output, and prints the output.
-%
 % If the input is `stop', the predicate terminates.
 % Otherwise, it calls itself to read the next line of input.
 %
@@ -42,32 +41,30 @@ cli :-
 
 %% handle_input(+Input:string, -Output:string)
 %
-% The handle_input/2 predicate is the main entry point for handling user input.
-% It preprocesses the input and tries to parse it as either a sentence, a question, or command.
+% The handle_input/2 predicate preprocesses the input and tries to parse it as either a
+% sentence, a question, or command.
 % If the input cannot be parsed, it outputs a default message.
 %
 % @param +Input The user input.
 % @param -Output The generated or default output.
 %
 handle_input(Input, Output) :-
-  utils:write_debug('trying to handle input...'),
+  % utils:write_debug('trying to handle input...'),
   preprocess_input(Input, InputList),
-
-  (   utils:write_debug('trying to parse as sentence...'),
+  (
+      % utils:write_debug('trying to parse as sentence...'),
       phrase(sentence:sentence(Sentence), InputList),
       handle_sentence(Sentence, Output)
-
-  ;   utils:write_debug('trying to parse as question...'),
+  ;
+      % utils:write_debug('trying to parse as question...'),
       phrase(question:question(Question), InputList),
       handle_question(Question, Output)
-
-  ;   utils:write_debug('trying to parse as command...'),
+  ;
+      % utils:write_debug('trying to parse as command...'),
       phrase(command:command(goal(Command, Output)), InputList),
-      utils:write_debug(goal(Command, Output)),
       call(Command) -> true
-
   ;   otherwise ->
-      utils:write_debug('could not parse...'),
+      % utils:write_debug('could not parse...'),
       atomic_list_concat(['I do not understand.'], ' ', Output)
   ).
 
@@ -96,7 +93,7 @@ preprocess_input(Input, Output) :-
 % @param -Output The generated output.
 %
 handle_sentence(Sentence, Output) :-
-  utils:write_debug(fact(Sentence)),
+  utils:write_debug(Sentence),
   % If the fact is already known, respond accordingly.
   (   engine:is_fact_known(Sentence) ->
       atomic_list_concat(['I know that.'], ' ', Output)
@@ -108,7 +105,7 @@ handle_sentence(Sentence, Output) :-
 %% handle_question(+Question:list, -Output:string)
 %
 % The handle_question/2 predicate handles a question input.
-% It tries to prove the question using the question-answering engine.
+% It tries to prove the question and/or its negation with the question-answering engine.
 %
 % @param +Question The question (a list of atoms).
 % @param -Output The generated output.
