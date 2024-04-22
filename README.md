@@ -15,3 +15,11 @@ In this case, the executable path for the `arthurwang.vsc-prolog` extension shou
   "prolog.executablePath": "/opt/homebrew/bin/swipl"
 }
 ```
+
+## Testing
+
+```sh
+cd prolog
+swipl --goal=cli -o cli -c cli.pl
+pytest
+```
