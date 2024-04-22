@@ -18,7 +18,7 @@
 :- op(600, xfy, ' => ').
 
 % The negation of a negation is equivalent to the original proposition.
-negation(negation(X)) :- X.
+% negation(negation(X)) :- X.
 
 % --- Predicates ---
 
@@ -79,18 +79,22 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Word The property or verb.
 %
 
-verb_phrase(singular, Property) --> [is], property(singular, Property).
-verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
-verb_phrase(singular, (Property1; Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
+verb_phrase(singular, true, Property) --> [is], property(singular, Property).
+verb_phrase(singular, false, Property) --> [is, not], property(singular, Property).
+verb_phrase(singular, true, (Property1; Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
+verb_phrase(singular, false, (Property1; Property2)) --> [is, not], property(singular, Property1), [or], property(singular, Property2).
 
-verb_phrase(plural, Property) --> [are], property(plural, Property).
-verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
-verb_phrase(plural, (Property1; Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
-verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+verb_phrase(plural, true, Property) --> [are], property(plural, Property).
+verb_phrase(plural, false, Property) --> [are, not], property(plural, Property).
+verb_phrase(plural, true, (Property1; Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
+verb_phrase(plural, false, (Property1; Property2)) --> [are, not], property(plural, Property1), [or], property(plural, Property2).
 
-verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
-verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
+
+verb_phrase(Number, true, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+
+verb_phrase(singular, false, IntransitiveVerb) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
+verb_phrase(plural, false, IntransitiveVerb) --> [do, not], intransitive_verb(plural, IntransitiveVerb).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -103,10 +107,10 @@ verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, n
 property(Number, Adjective) --> adjective(Number, Adjective).
 
 property(singular, Noun) --> [a], noun(singular, Noun).
-property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
+% property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
 
 property(plural, Noun) --> noun(plural, Noun).
-property(plural, negation(Noun)) --> [not], noun(plural, Noun).
+% property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 
 %% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
 %
@@ -120,20 +124,16 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
-determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
-
-% If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [every].
-determiner(plural, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [all].
+determiner(singular, Truth, X => Body, X => Head, [implies(Body, Head, always, Truth)]) --> [every].
+determiner(plural, Truth, X => Body, X => Head, [implies(Body, Head, always, Truth)]) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
+determiner(plural, Truth, X => Body, X => Head, [implies(Body, Head, default, Truth)]) --> [most].
+determiner(plural, Truth, X => Body, X => Head, [implies(Body, Head, default, Truth)]) --> [many].
+determiner(plural, Truth, X => Body, X => Head, [implies(Body, Head, default, Truth)]) --> [a, lot, of].
 
-determiner(singular, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [every].
-determiner(plural, X => Body, X => (Head1; Head2), [((Head1; Head2) :- Body)]) --> [all].
+determiner(singular, Truth, X => Body, X => (Head1; Head2), [implies(Body, (Head1; Head2), always, Truth)]) --> [every].
+determiner(plural, Truth, X => Body, X => (Head1; Head2), [implies(Body, (Head1; Head2), always, Truth)]) --> [all].
 
 %% adjective(?Number:atom, ?ToLiteral:atom)//
 %

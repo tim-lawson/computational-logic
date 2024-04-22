@@ -45,6 +45,6 @@ command(goal(engine:find_known_facts_noun(ProperNoun, Output), Output)) -->
   grammar:proper_noun(singular, ProperNoun).
 
 % Output the proof tree for a question.
-command(goal(engine:prove_question_tree(Question, Output), Output)) -->
+command(goal(engine:prove_question_tree(question(Clause, always, true), Output), Output)) -->
   [explain, why],
-  sentence:sentence_body([(Question :- true)]).
+  sentence:sentence_body([implies(true, Clause, always, true)]).

@@ -67,11 +67,11 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param -ClauseList: The list of clauses generated based on the term.
 %
 
-transform((Term1, Term2), [(Term1 :- true)|Rest]) :-
+transform((Term1, Term2), Truth, [implies(true, Term1, _, Truth)|Rest]) :-
   !,
-  transform(Term2, Rest).
+  transform(Term2, Truth, Rest).
 
-transform(Term, [(Term :- true)]).
+transform(Term, Truth, [implies(true, Term, _, Truth)]).
 
 %% try(+X)
 %

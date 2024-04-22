@@ -30,32 +30,32 @@ question_word --> [].
 %
 
 % "Who VerbPhrase?" questions.
-question_body(Question) -->
+question_body(question(Clause, _, true)) -->
   [who],
-  grammar:verb_phrase(singular, _ => Question).
+  grammar:verb_phrase(singular, true, _ => Clause).
 
 % "Is ProperNoun Property?" questions.
-question_body(Question) -->
+question_body(question(Clause, _, true)) -->
   [is],
   grammar:proper_noun(Number, X),
-  grammar:property(Number, X => Question).
+  grammar:property(Number, X => Clause).
 
 % "Is ProperNoun not Property?" questions.
-question_body(negation(Question)) -->
+question_body(question(Clause, _, false)) -->
   [is],
   grammar:proper_noun(Number, X),
   [not],
-  grammar:property(Number, X => Question).
+  grammar:property(Number, X => Clause).
 
 % "Does ProperNoun VerbPhrase?" questions.
-question_body(Question) -->
+question_body(question(Clause, _, true)) -->
   [does],
   grammar:proper_noun(_, X),
-  grammar:verb_phrase(_, X => Question).
+  grammar:verb_phrase(_, Truth, X => Clause).
 
 % "Does ProperNoun not VerbPhrase?" questions.
-question_body(negation(Question)) -->
+question_body(question(Clause, always, false)) -->
   [does],
   grammar:proper_noun(_, X),
   [not],
-  grammar:verb_phrase(_, X => Question).
+  grammar:verb_phrase(_, false, X => Clause).

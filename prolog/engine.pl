@@ -27,15 +27,18 @@ negation(negation(X)) :- X.
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
 %
-prove_question(Question, Output) :-
+prove_question(question(Clause, Certainty, Truth), Output) :-
+  utils:write_debug("prove_question:"),
+  utils:write_debug(question(Clause, Certainty, Truth)),
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   ( % Try to prove the question based on the known facts.
-    engine:prove_from_known_facts(Question, FactList) ->
-      engine:output_answer(Question, Output)
+    engine:prove_from_known_facts(Clause, Truth, FactList) ->
+      engine:output_answer(Clause, Truth, Output)
   ; % Try to prove the negation of the question.
-    engine:prove_from_known_facts(negation(Question), FactList) ->
-      engine:output_answer(negation(Question), Output)
+  (Truth = true -> NotTruth = false; NotTruth = true),
+    engine:prove_from_known_facts(Clause, NotTruth, FactList) ->
+      engine:output_answer(Clause, NotTruth, Output)
   ; % If the question cannot be proved either way, output a default response.
     Output = 'I do not know that is true.'
   ).
@@ -49,15 +52,16 @@ prove_question(Question, Output) :-
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
 %
-prove_question_list(Question, Output) :-
+prove_question_list(question(Clause, Certainty, Truth), Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   ( % Try to prove the question based on the known facts.
-    engine:prove_from_known_facts(Question, FactList) ->
-      engine:output_answer(Question, Output)
+    engine:prove_from_known_facts(Clause, Truth, FactList) ->
+      engine:output_answer(Clause, Truth, Output)
   ; % Try to prove the negation of the question.
-    engine:prove_from_known_facts(negation(Question), FactList) ->
-      engine:output_answer(negation(Question), Output)
+    (Truth = true -> NotTruth = false; NotTruth = true),
+    engine:prove_from_known_facts(Question, NotTruth, FactList) ->
+      engine:output_answer(Question, NotTruth, Output)
   ; % If the question cannot be proved either way, output the empty string.
     Output = ''
   ).
@@ -72,15 +76,16 @@ prove_question_list(Question, Output) :-
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
 %
-prove_question_tree(Question, Output) :-
+prove_question_tree(question(Clause, Certainty, Truth), Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   ( % Try to prove the question based on the known facts.
-    engine:prove_from_known_facts(Question, FactList, [], ProofList) ->
-      output_proof_list(Question, ProofList, Output)
+    engine:prove_from_known_facts(Clause, Truth, FactList, [], ProofList) ->
+      output_proof_list(Clause, Truth, ProofList, Output)
   ; % Try to prove the negation of the question.
-    engine:prove_from_known_facts(negation(Question), FactList, [], ProofList) ->
-      output_proof_list(negation(Question), ProofList, Output)
+    (Truth = true -> NotTruth = false; NotTruth = true),
+    engine:prove_from_known_facts(Clause, NotTruth, FactList, [], ProofList) ->
+      output_proof_list(Clause, NotTruth, ProofList, Output)
   ; % If the question cannot be proved, output a default response.
     Output = 'I do not think that is true.'
   ).
@@ -100,50 +105,54 @@ prove_question_tree(Question, Output) :-
 %
 
 % If the clause is true, we are done.
-prove_from_known_facts(true, _FactList, ProofList, ProofList) :- !.
+prove_from_known_facts(true, _, _FactList, ProofList, ProofList) :- !.
 
 % -- Conjunction
-prove_from_known_facts((Conjunct1, Conjunct2), FactList, ProofList, Proof) :-
+prove_from_known_facts((Conjunct1, Conjunct2), Truth, FactList, ProofList, Proof) :-
   !,
   % Find a clause of the form 'if Body1 then Conjunct1'.
-  utils:find_clause((Conjunct1 :- Body1), Fact, FactList),
+  utils:find_clause(implies(Body1, Conjunct1, always, Truth), Fact, FactList),
   % Concatenate Body1 and Conjunct2 into Body2.
   utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
   % Try to prove Body2. If the proof succeeds, then we have proven (Conjunct1, Conjunct2).
-  prove_from_known_facts(Body2, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
+  prove_from_known_facts(Body2, true, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
 
 % -- Default reasoning
-prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Truth, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then default(Clause)'.
-  utils:find_clause((default(Clause) :- Body), Fact, FactList),
+  utils:find_clause(implies(Body, Clause, default, Truth), Fact, FactList),
+  utils:write_debug(implies(Body, Clause, default, Truth)),
   % Try to prove Body. If the proof succeeds, then we have proven default(Clause).
-  prove_from_known_facts(Body, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
+  prove_from_known_facts(Body, true, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
 
-% -- Implication
-prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+% -- Implication (Truth=true: modus ponens, Truth=false: modus tollens) 
+prove_from_known_facts(Clause, Truth, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then Clause'.
-  utils:find_clause((Clause :- Body), Fact, FactList),
+  utils:find_clause(implies(Body, Clause, always, Truth), Fact, FactList),
+  utils:write_debug(implies(Body, Clause, always, Truth)),
   % Try to prove Body. If the proof succeeds, then we have proven Clause.
-  prove_from_known_facts(Body, FactList, [proof(Clause, Fact)|ProofList], Proof).
+  prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
 % -- Negation (modus tollens)
-prove_from_known_facts(negation(Clause), FactList, ProofList, Proof) :-
-  % Find a clause of the form 'if Clause then Body'.
-  utils:find_clause((Body :- Clause), Fact, FactList),
-  % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.
-  prove_from_known_facts(negation(Body), FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
+% prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+%   % Find a clause of the form 'if Clause then Body'.
+%   utils:find_clause(implies(Body, Clause, always, false), Fact, FactList),
+%   utils:write_debug(implies(Body, Clause, always, false)),
+%   % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.
+%   prove_from_known_facts(negation(Body), FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
 
 % -- Disjunction (positive case)
-prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Truth, FactList, ProofList, Proof) :-
   ( % Find a disjunctive rule of the form 'if Body then (Clause; Other)'.
-    utils:find_clause(((Clause; Other) :- Body), Fact, FactList)
+    utils:find_clause(implies(Body, (Clause; Other), _, true), Fact, FactList)
     % Find a disjunctive rule of the form 'if Body then (Other; Clause)'.
-  ; utils:find_clause(((Other; Clause) :- Body), Fact, FactList)
+  ; utils:find_clause(implies(Body, (Other; Clause), _, true), Fact, FactList)
   ),
   % Try to prove Body. If the proof succeeds, then we have proven (Clause; Other).
-  prove_from_known_facts(Body, FactList, [], A),
+  prove_from_known_facts(Body, Truth, FactList, [], A),
   % Try to prove negation(Other). If the proof succeeds, then we have proven Clause.
-  prove_from_known_facts(negation(Other), FactList, [], B),
+  (Truth = true -> NotTruth = false;  NotTruth = true),
+  prove_from_known_facts(Other, NotTruth, FactList, [], B),
   !,
   % Concatenate the proofs of the Body, negation(Other), and Clause itself.
   append(A, B, C),
@@ -158,8 +167,9 @@ prove_from_known_facts(Clause, FactList, ProofList, Proof) :-
 % @param +Clause: The clause to prove.
 % @param +FactList: The list of facts to use.
 %
-prove_from_known_facts(Clause, FactList) :-
-  prove_from_known_facts(Clause, FactList, [], _Proof).
+prove_from_known_facts(Clause, Truth, FactList) :-
+  utils:write_debug(Clause/Truth), 
+  prove_from_known_facts(Clause, Truth, FactList, [], _Proof).
 
 % --- Commands ---
 
@@ -262,9 +272,9 @@ add_clause_to_facts(Clause, FactList, [(Clause :- true)|FactList]).
 % @param +Result: The question.
 % @param -Output: The generated output.
 %
-output_answer(Question, Output) :-
+output_answer(Question, Truth, Output) :-
   % Transform the question into a clause.
-  utils:transform(Question, Clause),
+  utils:transform(Question, Truth, Clause),
   % Transform the clause into a sentence.
   phrase(sentence:sentence(Clause), OutputList),
   % Transform the sentence into a string.
@@ -307,11 +317,11 @@ output_proof(proof(_Clause, Fact), Output):-
 % @param +ProofList: The proof list.
 % @param -Output: The generated output.
 %
-output_proof_list(Question, ProofList, Output) :-
+output_proof_list(Question, Truth, ProofList, Output) :-
   % Transform each step of the proof into a sentence.
   maplist(engine:output_proof, ProofList, OutputListProof),
   % Transform the question into a clause.
-  phrase(sentence:sentence_body([(Question :- true)]), Clause),
+  phrase(sentence:sentence_body([implies(true, Question, always, true)]), Clause),
   % Transform the clause into a sentence.
   atomic_list_concat([therefore|Clause], ' ', Sentence),
   % Append the sentence to the output.
