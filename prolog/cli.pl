@@ -6,6 +6,7 @@
 
 % --- Imports ---
 
+:- use_module(library(debug)).
 :- use_module(engine).
 :- use_module(utils).
 :- use_module(sentence).
@@ -41,31 +42,31 @@ cli :-
 
 %% handle_input(+Input:string, -Output:string)
 %
-% The handle_input/2 predicate preprocesses the input and tries to parse it as either a
-% sentence, a question, or command.
-% If the input cannot be parsed, it outputs a default message.
+% The handle_input/2 predicate preprocesses the input and tries to parse it as a sentence, question, or command.
+% If the input cannot be parsed, it outputs a default response.
 %
 % @param +Input The user input.
-% @param -Output The generated or default output.
+% @param -Output The generated output.
 %
 handle_input(Input, Output) :-
-  % utils:write_debug('trying to handle input...'),
   preprocess_input(Input, InputList),
   (
-      % utils:write_debug('trying to parse as sentence...'),
+      % Try to parse the input as a sentence.
       phrase(sentence:sentence(Sentence), InputList),
+      debug:debug('cli', 'parsed as sentence: ~q', [Sentence]),
       handle_sentence(Sentence, Output)
   ;
-      % utils:write_debug('trying to parse as question...'),
+      % Try to parse the input as a question.
       phrase(question:question(Question), InputList),
+      debug:debug('cli', 'parsed as question: ~q', [Question]),
       handle_question(Question, Output)
   ;
-      % utils:write_debug('trying to parse as command...'),
+      % Try to parse the input as a command.
       phrase(command:command(goal(Command, Output)), InputList),
+      debug:debug('cli', 'parsed as command: ~q', [Command]),
       call(Command) -> true
-  ;   otherwise ->
-      % utils:write_debug('could not parse...'),
-      atomic_list_concat(['I do not understand.'], ' ', Output)
+  ;
+      otherwise -> atomic_list_concat(['I do not understand.'], ' ', Output)
   ).
 
 %% preprocess_input(+Input:string, -Output:list)
@@ -93,13 +94,14 @@ preprocess_input(Input, Output) :-
 % @param -Output The generated output.
 %
 handle_sentence(Sentence, Output) :-
-  utils:write_debug(Sentence),
-  % If the fact is already known, respond accordingly.
-  (   engine:is_fact_known(Sentence) ->
-      atomic_list_concat(['I know that.'], ' ', Output)
-  % Otherwise, add it to the known facts and respond accordingly.
-  ;   assertz(utils:known_fact(Sentence)),
-      atomic_list_concat(['I will remember that.'], ' ', Output)
+  (
+    % If the fact is already known, respond accordingly.
+    engine:is_fact_known(Sentence) ->
+    atomic_list_concat(['I know that.'], ' ', Output)
+  ;
+    % Otherwise, add it to the known facts and respond accordingly.
+    assertz(utils:known_fact(Sentence)),
+    atomic_list_concat(['I will remember that.'], ' ', Output)
   ).
 
 %% handle_question(+Question:list, -Output:string)
