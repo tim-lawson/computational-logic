@@ -46,14 +46,14 @@ sentence_word --> [that].
 %   grammar:noun(Number, ToBody),
 %   grammar:verb_phrase(Number, (disjunction(HeadList))).
 
-% sentence_body([Head :- true]) -->
-%   grammar:proper_noun(Number, ProperNoun),
-%   grammar:verb_phrase(Number, ProperNoun => Head).
-
-% sentence_body([negation(Head) :- true]) -->
-%   grammar:proper_noun(Number, X),
-%   grammar:verb_phrase(Number, negation(X => Head)).
-
-sentence_body([disjunction(HeadList) :- true]) -->
+sentence_body([Head :- true]) -->
   grammar:proper_noun(Number, ProperNoun),
-  grammar:verb_phrase(Number, ProperNoun => disjunction(HeadList)).
+  grammar:verb_phrase(Number, ProperNoun => Head).
+
+sentence_body([negation(Head) :- true]) -->
+  grammar:proper_noun(Number, X),
+  grammar:verb_phrase(Number, negation(X => Head)).
+
+% sentence_body([disjunction(HeadList) :- true]) -->
+%   grammar:proper_noun(Number, ProperNoun),
+%   grammar:verb_phrase(Number, ProperNoun => disjunction(HeadList)).

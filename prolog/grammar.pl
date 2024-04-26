@@ -79,7 +79,7 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Word The property or verb.
 %
 
-% verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
+verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
 verb_phrase(singular, Property) --> [is], property(singular, Property).
 verb_phrase(singular, X => disjunction([LastProperty | []])) --> [or], verb_phrase(singular, X => LastProperty).
 verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(singular, X => Property1), verb_phrase(singular, X => disjunction(Rest)).
@@ -101,7 +101,7 @@ verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(sing
 % @param Number The grammatical number.
 % @param Word The adjective or noun.
 %
-property(Number, Adjective) --> adjective(Number, Adjective).
+property(_, Adjective) --> adjective(Adjective).
 
 property(singular, Noun) --> [a], noun(singular, Noun).
 property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
@@ -136,15 +136,14 @@ determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot,
 % determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
 determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
 
-%% adjective(?Number:atom, ?ToLiteral:atom)//
+%% adjective(?ToLiteral:atom)//
 %
-% The adjective//2 DCG rule defines adjectives.
-% It relates the adjective, its grammatical number, and its literal.
+% The adjective//1 DCG rule defines adjectives.
+% It relates the adjective and its literal.
 %
-% @param ?Number The grammatical number.
-% @param ?ToLiteral The adjective and its literal.
+% @param ?ToLiteral The adjective and its literal in the form Noun => Adjective(Noun).
 %
-adjective(_, ToLiteral) -->
+adjective(ToLiteral) -->
   [Adjective],
   {
       predicate_to_grammar(_Predicate, 1, adj/Adjective, ToLiteral)
