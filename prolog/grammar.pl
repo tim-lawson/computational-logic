@@ -81,8 +81,7 @@ proper_noun(singular, pixie) --> [pixie].
 
 verb_phrase(singular, ToLiteral) --> [is], property(singular, ToLiteral).
 verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/false).
-% verb_phrase(singular, X => disjunction([LastProperty | []])) --> [or], verb_phrase(singular, X => LastProperty).
-% verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(singular, X => Property1), verb_phrase(singular, X => disjunction(Rest)).
+
 
 verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
 verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
@@ -92,6 +91,14 @@ verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
 
 verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
 verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
+
+% Disjunction
+% Here X is either:
+% - a proper noun for cases like "Alice is human or a bird" as we need to pass that on to get [human(alice), bird(alice)]
+% - or nothing for cases like "all pixels are red or green" as we don't need to pass pixel on to get [red(X), green(X)]
+verb_phrase(Number, X => disjunction([ Literal | Rest])) --> verb_phrase(Number, X => Literal), disjunctive(Number, X => disjunction(Rest)).
+disjunctive(Number, X => disjunction([ Literal | Rest])) --> property(singular, X => Literal), disjunctive(Number, X => disjunction(Rest)).
+disjunctive(Number, X => disjunction([ Literal | []])) --> [or], property(Number, X => Literal).
 
 %% property(?Number:atom, ?Word:atom)//
 %

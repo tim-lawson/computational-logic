@@ -52,15 +52,8 @@ sentence_body([(some(Head) :- Body)]) -->
   grammar:noun(Number, _ => Body),
   grammar:verb_phrase(Number, _ => Head).
 
-% sentence_body(Sentence) -->
-%   grammar:determiner(Number, ToBody, HeadList, Sentence),
-%   grammar:noun(Number, ToBody),
-%   grammar:verb_phrase(Number, (disjunction(HeadList))).
-
 sentence_body([Head :- true]) -->
   grammar:proper_noun(Number, ProperNoun),
   grammar:verb_phrase(Number, ProperNoun => Head).
 
-% sentence_body([disjunction(HeadList) :- true]) -->
-%   grammar:proper_noun(Number, ProperNoun),
-%   grammar:verb_phrase(Number, ProperNoun => disjunction(HeadList)).
+
