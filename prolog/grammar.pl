@@ -79,19 +79,19 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Word The property or verb.
 %
 
-verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
-verb_phrase(singular, Property) --> [is], property(singular, Property).
-verb_phrase(singular, X => disjunction([LastProperty | []])) --> [or], verb_phrase(singular, X => LastProperty).
-verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(singular, X => Property1), verb_phrase(singular, X => disjunction(Rest)).
+verb_phrase(singular, ToLiteral) --> [is], property(singular, ToLiteral).
+verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/false).
+% verb_phrase(singular, X => disjunction([LastProperty | []])) --> [or], verb_phrase(singular, X => LastProperty).
+% verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(singular, X => Property1), verb_phrase(singular, X => disjunction(Rest)).
 
-% verb_phrase(plural, Property) --> [are], property(plural, Property).
-% verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
+verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
+verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
 % verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
-% verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
 
-% verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
-% verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
+verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
+verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -121,17 +121,15 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
-determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
-
-% If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [every].
-determiner(plural, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [all].
+determiner(singular, all) --> [every].
+determiner(plural, all) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
+determiner(plural, default) --> [most].
+determiner(plural, default) --> [many].
+determiner(plural, default) --> [a, lot, of].
+
+determiner(plural, some) --> [some].
 
 % determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
 determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
@@ -244,6 +242,14 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 % @param ToLiteral The word and its literal.
 %
 predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
+  % If predicate is a unary predicate of arity 1 and...
+  predicate(Predicate, 1, Words),
+  % WordCategory/Word is a member of Words...
+  member(WordCategory/Word, Words),
+  % Construct Literal from Predicate and X.
+  Literal=..[Predicate, X].
+
+predicate_to_grammar(Predicate, 1, WordCategory/Word, (X => negate(Literal))/false) :-
   % If predicate is a unary predicate of arity 1 and...
   predicate(Predicate, 1, Words),
   % WordCategory/Word is a member of Words...
