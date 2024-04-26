@@ -31,6 +31,12 @@ sentence_word --> [that].
 % @param Sentence The list of atoms.
 %
 
+%  TODO: Can collapse with structure like:
+% sentence_body([(Head / Applicability :- Body)]) -->
+%   grammar:determiner(Number, Applicability),
+%   grammar:noun(Number, _ => Body),
+%   grammar:verb_phrase(Number, _ => Head).
+ 
 sentence_body([(Head :- Body)]) -->
   grammar:determiner(Number, all),
   grammar:noun(Number, _ => Body),
