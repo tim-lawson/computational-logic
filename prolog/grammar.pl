@@ -79,18 +79,19 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Word The property or verb.
 %
 
+% verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
 verb_phrase(singular, Property) --> [is], property(singular, Property).
-verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
-verb_phrase(singular, disjunction(Property1, Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
+verb_phrase(singular, X => disjunction([LastProperty | []])) --> [or], verb_phrase(singular, X => LastProperty).
+verb_phrase(singular, X => disjunction([Property1 | Rest])) --> verb_phrase(singular, X => Property1), verb_phrase(singular, X => disjunction(Rest)).
 
-verb_phrase(plural, Property) --> [are], property(plural, Property).
-verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
-verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
+% verb_phrase(plural, Property) --> [are], property(plural, Property).
+% verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
+% verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
-verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+% verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
 
-verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
-verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
+% verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
+% verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -132,7 +133,7 @@ determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
 determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
 
-determiner(singular, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [every].
+% determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
 determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
 
 %% adjective(?Number:atom, ?ToLiteral:atom)//

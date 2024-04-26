@@ -32,4 +32,7 @@
 # Python
 *__pycache__
 
+# VENV
+.venv
+
 prolog/cli
