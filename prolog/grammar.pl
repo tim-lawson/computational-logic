@@ -85,25 +85,29 @@ verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/fal
 
 verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
 verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
-% verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
 verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
 
 verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
 verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
 
-% verb_phrase(Number, X => Literal;Rest) --> verb_phrase(Number, X => Literal), disjunctive(Number, X => Rest).
-% verb_phrase(Number, X => Literal/Rest) --> verb_phrase(Number, X => Literal), conjunctive(Number, X => Rest).
-
 % Disjunction
 % Here X is either:
 % - a proper noun for cases like "Alice is human or a bird" as we need to pass that on to get [human(alice), bird(alice)]
 % - or nothing for cases like "all pixels are red or green" as we don't need to pass pixel on to get [red(X), green(X)]
+disjunction(Number, X => Literal) --> [or], verb_phrase(Number, X => Literal).
+disjunction(Number, X => Literal) --> [or], intransitive_verb(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], property(Number, X => Literal).
+disjunction(Number, X => Literal;Rest) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => Literal;Rest) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
 disjunction(Number, X => Literal;Rest) --> property(Number, X => Literal), disjunction(Number, X => Rest).
 
 % Conjunction
+conjunction(Number, X => Literal) --> [and], verb_phrase(Number, X => Literal).
+conjunction(Number, X => Literal) --> [and], intransitive_verb(Number, X => Literal).
 conjunction(Number, X => Literal) --> [and], property(Number, X => Literal).
+conjunction(Number, X => (Literal,Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal,Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
 conjunction(Number, X => (Literal,Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
 
 %% property(?Number:atom, ?Word:atom)//
