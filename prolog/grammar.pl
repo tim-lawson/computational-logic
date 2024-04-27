@@ -266,7 +266,7 @@ predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
   % Construct Literal from Predicate and X.
   Literal=..[Predicate, X].
 
-predicate_to_grammar(Predicate, 1, WordCategory/Word, (X => negate(Literal))/false) :-
+predicate_to_grammar(Predicate, 1, WordCategory/Word, (X => negation(Literal))/false) :-
   % If predicate is a unary predicate of arity 1 and...
   predicate(Predicate, 1, Words),
   % WordCategory/Word is a member of Words...
