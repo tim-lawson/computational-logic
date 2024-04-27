@@ -168,23 +168,32 @@ prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
   % Try to prove Body. If the proof succeeds, then we have proven default(Clause).
   prove_from_known_facts(Body, TruthValue, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
 
-% -- Implication
-prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
-  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, TruthValue]),
+% -- Implication (modus ponens) positive
+prove_from_known_facts(Clause, true, FactList, ProofList, Proof) :-
+  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, true]),
   % Find a clause of the form 'if Body then Clause'.
   utils:find_clause((Clause :- Body), Fact, FactList),
   debug:debug('engine', 'implication: found ~q :- ~q', [Clause, Body]),
   % Try to prove Body. If the proof succeeds, then we have proven Clause.
-  prove_from_known_facts(Body, TruthValue, FactList, [proof(Clause, Fact)|ProofList], Proof).
+  prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
+
+% -- TODO: Name this. 
+prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
+  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, false]),
+  % Find a clause of the form 'if Body then Clause'.
+  utils:find_clause((negation(Clause) :- Body), Fact, FactList),
+  debug:debug('engine', 'implication: found ~q :- ~q', [negate(Clause), Body]),
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
 % -- Negation (modus tollens)
 prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
-  debug:debug('engine', 'negation: trying to prove ~q is ~q', [negation(Clause), TruthValue]),
-  % Find a clause of the form 'if Clause then Body'.
-  utils:find_clause((Body :- Clause), Fact, FactList),
-  debug:debug('engine', 'negation: found ~q :- ~q', [Body, Clause]),
+  debug:debug('engine', 'negation: trying to prove ~q is ~q', [Clause, false]),
+  % If the clause we're trying to prove implies another face, and we can prove that fact is false, then we can prove the clause is false.
+  utils:find_clause((Head :- Clause), Fact, FactList),
+  debug:debug('engine', 'negation: found ~q :- ~q', [Head, Clause]),
   % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.
-  prove_from_known_facts(negation(Body), TruthValue, FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
+  prove_from_known_facts(negation(Head), true, FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
 
 % -- Disjunction
 prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
