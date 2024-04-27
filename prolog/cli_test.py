@@ -65,6 +65,15 @@ def test_negation():
     )
 
 
+def test_negation_simple():
+    """Test the CLI with negation rules."""
+
+    cli(
+        ("pixie is not blue", REMEMBER),
+        ("is pixie blue", "pixie is not blue"),
+    )
+
+
 def test_disjunction():
     """Test the CLI with disjunction rules."""
 
