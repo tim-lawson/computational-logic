@@ -182,7 +182,7 @@ prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
   debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, false]),
   % Find a clause of the form 'if Body then Clause'.
   utils:find_clause((negation(Clause) :- Body), Fact, FactList),
-  debug:debug('engine', 'implication: found ~q :- ~q', [negate(Clause), Body]),
+  debug:debug('engine', 'implication: found ~q :- ~q', [negation(Clause), Body]),
   % Try to prove Body. If the proof succeeds, then we have proven Clause.
   prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
