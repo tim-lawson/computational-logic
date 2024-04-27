@@ -15,7 +15,10 @@
 :- use_module(sentence).
 :- use_module(utils).
 
+% TODO: does this work?
 negation(negation(X)) :- X.
+negation(true) :- false.
+negation(false) :- true.
 
 % --- Question Answering ---
 
@@ -49,37 +52,26 @@ prove_question(Question, Output) :-
 % @param -Output: The generated output.
 %
 
-% -- Negative
 prove_question_list(negation(Question), Output) :-
-  % Find all known facts.
-  findall(Fact, utils:known_fact(Fact), FactList),
-  (
-    % Try to prove the question is true.
-    engine:prove_from_known_facts(Question, true, FactList) ->
-      engine:output_answer(Question, Output)
-  ;
-    % Try to prove the question is false.
-    engine:prove_from_known_facts(Question, false, FactList) ->
-      engine:output_answer(negation(Question), Output)
-  ;
-    % If the question cannot be proved either way, output the empty string.
-    Output = ''
-  ).
+  prove_question_list(Question, Output).
 
-% -- Positive
 prove_question_list(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   (
-    % Try to prove the question is true.
-    engine:prove_from_known_facts(Question, true, FactList) ->
-      engine:output_answer(Question, Output)
-  ;
-    % Try to prove the question is false.
-    engine:prove_from_known_facts(Question, false, FactList) ->
-      engine:output_answer(negation(Question), Output)
-  ;
-    % If the question cannot be proved either way, output the empty string.
+    engine:prove_from_known_facts(Question, true, FactList)
+      -> engine:output_answer(Question, Output)
+
+  ; engine:prove_from_known_facts(Question, false, FactList)
+      -> engine:output_answer(negation(Question), Output)
+
+  ; engine:prove_from_known_facts(negation(Question), true, FactList)
+      -> engine:output_answer(negation(Question), Output)
+
+  ; engine:prove_from_known_facts(negation(Question), false, FactList)
+      -> engine:output_answer(Question, Output)
+
+  ; % If the question cannot be proved either way, output the empty string.
     Output = ''
   ).
 
@@ -94,37 +86,26 @@ prove_question_list(Question, Output) :-
 % @param -Output: The generated output.
 %
 
-% -- Negative
 prove_question_tree(negation(Question), Output) :-
-  % Find all known facts.
-  findall(Fact, utils:known_fact(Fact), FactList),
-  (
-    % Try to prove the question is true.
-    engine:prove_from_known_facts(Question, true, FactList, [], ProofList) ->
-      engine:output_proof_list(Question, ProofList, Output)
-  ;
-    % Try to prove the question is false.
-    engine:prove_from_known_facts(Question, false, FactList, [], ProofList) ->
-      engine:output_proof_list(negation(Question), ProofList, Output)
-  ;
-    % If the question cannot be proved, output a default response.
-    Output = 'I do not know whether that is true or false.'
-  ).
+  prove_question_tree(Question, Output).
 
-% -- Positive
 prove_question_tree(Question, Output) :-
   % Find all known facts.
   findall(Fact, utils:known_fact(Fact), FactList),
   (
-    % Try to prove the question is true.
-    engine:prove_from_known_facts(Question, true, FactList, [], ProofList) ->
-      engine:output_proof_list(Question, ProofList, Output)
-  ;
-    % Try to prove the question is false.
-    engine:prove_from_known_facts(Question, false, FactList, [], ProofList) ->
-      engine:output_proof_list(negation(Question), ProofList, Output)
-  ;
-    % If the question cannot be proved, output a default response.
+    engine:prove_from_known_facts(Question, true, FactList, [], ProofList)
+      -> engine:output_proof_list(Question, ProofList, Output)
+
+  ; engine:prove_from_known_facts(Question, false, FactList, [], ProofList)
+      -> engine:output_proof_list(negation(Question), ProofList, Output)
+
+  ; engine:prove_from_known_facts(negation(Question), true, FactList, [], ProofList)
+      -> engine:output_proof_list(negation(Question), ProofList, Output)
+
+  ; engine:prove_from_known_facts(negation(Question), false, FactList, [], ProofList)
+      -> engine:output_proof_list(Question, ProofList, Output)
+
+  ; % If the question cannot be proved, output a default response.
     Output = 'I do not know whether that is true or false.'
   ).
 

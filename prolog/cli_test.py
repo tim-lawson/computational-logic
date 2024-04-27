@@ -71,6 +71,7 @@ def test_negation_simple():
     cli(
         ("pixie is not blue", REMEMBER),
         ("is pixie blue", "pixie is not blue"),
+        ("is pixie not blue", "pixie is not blue"),
     )
 
 
