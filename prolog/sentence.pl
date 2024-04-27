@@ -62,17 +62,15 @@ sentence_body([(some(Head) :- Body)]) -->
   grammar:verb_phrase(Number, X => Head).
 
 % Disjunction and conjunction are handled separately
-sentence_body([(Head1; HeadRest :- Body)]) -->
+sentence_body([(Head :- Body)]) -->
   grammar:determiner(Number, all),
   grammar:noun(Number, X => Body),
-  grammar:verb_phrase(Number, X => Head1), 
-  grammar:disjunction(Number, X => HeadRest).
+  grammar:disjunction(Number, X => Head).
 
-sentence_body([((Head1, HeadRest) :- Body)]) -->
+sentence_body([(Head :- Body)]) -->
   grammar:determiner(Number, all),
   grammar:noun(Number, X => Body),
-  grammar:verb_phrase(Number, X => Head1), 
-  grammar:conjunction(Number, X => HeadRest).
+  grammar:conjunction(Number, X => Head).
 
 % Here ProperNoun is bound to a value by proper_noun
 % It is passed to verb_phrase so it can be used as the atom of Head
@@ -81,4 +79,11 @@ sentence_body([Head :- true]) -->
   grammar:proper_noun(Number, ProperNoun),
   grammar:verb_phrase(Number, ProperNoun => Head).
 
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, ProperNoun),
+  grammar:disjunction(Number, ProperNoun => Head).
+
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, ProperNoun),
+  grammar:conjunction(Number, ProperNoun => Head).
 
