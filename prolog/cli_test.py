@@ -110,12 +110,19 @@ def test_disjunction():
     )
 
 
-# def test_disjunction_two_plus():
-#     """Test the CLI with disjunction rules."""
-
-#     cli(
-#         ("pixie is a pixel", REMEMBER),
-#         ("every pixel is red green or blue", REMEMBER),
-#         ("pixie is not red and is not blue", REMEMBER),
-#         ("is pixie green", "pixie is green"),
-#     )
+def test_disjunction_three_term():
+    """Test the CLI with disjunction rules."""
+    # Currently only works if the query is about the middle element.
+    # This is because in that case "ClausesBefore", "Clause", and "ClausesAfter" are single clauses
+    # and splitting "OtherClauses" is not implemented yet.
+    cli(
+        ("pixie is a pixel", REMEMBER),
+        ("every pixel is red green or blue", REMEMBER),
+        ("pixie is not red", REMEMBER),
+        ("pixie is not blue", REMEMBER),
+        ("is pixie green", "pixie is green"),
+        (
+            "explain why pixie is green",
+            "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not blue, therefore pixie is green",
+        ),
+    )
