@@ -138,18 +138,19 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, all) --> [every].
-determiner(plural, all) --> [all].
+determiner(singular, 1) --> [].
+determiner(plural, 1) --> [].
+determiner(singular, 1) --> [every].
+determiner(plural, 1) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, default) --> [most].
-determiner(plural, default) --> [many].
-determiner(plural, default) --> [a, lot, of].
+determiner(singular, 0.75) --> [it, is, likely, that].
+determiner(plural, 0.75) --> [most].
+determiner(plural, 0.75) --> [many].
+determiner(plural, 0.75) --> [a, lot, of].
 
-determiner(plural, some) --> [some].
-
-% determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
-determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
+determiner(singular, 0.5) --> [it, could, be, that].
+determiner(plural, 0.5) --> [some].
 
 %% adjective(?ToLiteral:atom)//
 %

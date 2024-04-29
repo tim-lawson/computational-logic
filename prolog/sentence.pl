@@ -46,44 +46,37 @@ sentence_word --> [that].
 %   grammar:noun(Number, _ => Body),
 %   grammar:verb_phrase(Number, _ => Head).
 
-sentence_body([(Head :- Body)]) -->
-  grammar:determiner(Number, all),
-  grammar:noun(Number, X => Body),
-  grammar:verb_phrase(Number, X => Head).
-
-sentence_body([(default(Head) :- Body)]) -->
-  grammar:determiner(Number, default),
-  grammar:noun(Number, X => Body),
-  grammar:verb_phrase(Number, X => Head).
-
-sentence_body([(some(Head) :- Body)]) -->
-  grammar:determiner(Number, some),
+sentence_body([(Head :- Body | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:noun(Number, X => Body),
   grammar:verb_phrase(Number, X => Head).
 
 % Disjunction and conjunction are handled separately
-sentence_body([(Head :- Body)]) -->
-  grammar:determiner(Number, all),
+sentence_body([(Head :- Body | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:noun(Number, X => Body),
   grammar:disjunction(Number, X => Head).
 
-sentence_body([(Head :- Body)]) -->
-  grammar:determiner(Number, all),
+sentence_body([(Head :- Body | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:noun(Number, X => Body),
   grammar:conjunction(Number, X => Head).
 
 % Here ProperNoun is bound to a value by proper_noun
 % It is passed to verb_phrase so it can be used as the atom of Head
 % E.g. human(alice) :- true. 
-sentence_body([Head :- true]) -->
+sentence_body([(Head :- true | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:proper_noun(Number, ProperNoun),
   grammar:verb_phrase(Number, ProperNoun => Head).
 
-sentence_body([Head :- true]) -->
+sentence_body([(Head :- true | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:proper_noun(Number, ProperNoun),
   grammar:disjunction(Number, ProperNoun => Head).
 
-sentence_body([Head :- true]) -->
+sentence_body([(Head :- true | Certainty)]) -->
+  grammar:determiner(Number, Certainty),
   grammar:proper_noun(Number, ProperNoun),
   grammar:conjunction(Number, ProperNoun => Head).
 
