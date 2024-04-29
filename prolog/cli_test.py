@@ -165,3 +165,32 @@ def test_disjunctive_questions():
             "pixie is red, therefore pixie is blue or is red",
         ),
     )
+
+
+def test_conjunction():
+    """Test the CLI with conjunction rules."""
+
+    cli(
+        ("bob is human and mortal", REMEMBER),
+        ("is bob human", "bob is human"),
+        ("is bob mortal", "bob is mortal"),
+    )
+
+
+def test_conjunction_three_term():
+    """Test the CLI with conjunction rules."""
+    # Question is middle term
+    cli(
+        ("bob is human mortal and does not fly", REMEMBER),
+        ("is bob human", "bob is human"),
+        ("is bob mortal", "bob is mortal"),
+        ("does bob fly", "bob does not fly"),
+    )
+
+
+def test_conjunction_questions():
+    """Test the CLI with conjunctive questions."""
+    cli(
+        ("bob is human mortal and does not fly", REMEMBER),
+        ("is bob mortal and human", "bob is mortal and is human"),
+    )

@@ -46,6 +46,12 @@ question_body(Question) -->
   grammar:proper_noun(Number, X),
   grammar:disjunction(Number, X => Question).
 
+% "Is ProperNoun Property1 and Property2?" questions.
+question_body(Question) -->
+  [is],
+  grammar:proper_noun(Number, X),
+  grammar:conjunction(Number, X => Question).
+
 % "Is ProperNoun not Property?" questions.
 question_body(negation(Question)) -->
   [is],
