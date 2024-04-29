@@ -205,7 +205,7 @@ prove_from_known_facts(Clause, true, FactList, ProofList, Proof) :-
   % Try to prove Body. If the proof succeeds, then we have proven Clause.
   prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
-% -- TODO: Name this. 
+% -- Implication (modus ponens) negation
 prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
   debug:debug('engine', '?: trying to prove ~q is ~q', [Clause, false]),
   % Find a clause of the form 'if Body then Clause'.
@@ -217,7 +217,7 @@ prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
 % -- Negation (modus tollens)
 prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
   debug:debug('engine', 'negation: trying to prove ~q is ~q', [Clause, false]),
-  % If the clause we're trying to prove implies another face, and we can prove that fact is false, then we can prove the clause is false.
+  % If the clause we're trying to prove implies another fact, and we can prove that fact is false, then we can prove the clause is false.
   utils:find_clause((Head :- Clause), Fact, FactList),
   debug:debug('engine', 'negation: found ~q :- ~q', [Head, Clause]),
   % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.

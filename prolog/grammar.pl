@@ -98,9 +98,9 @@ verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLitera
 disjunction(Number, X => Literal) --> [or], verb_phrase(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], intransitive_verb(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], property(Number, X => Literal).
-disjunction(Number, X => Literal;Rest) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => Literal;Rest) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => Literal;Rest) --> property(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal;Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal;Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal;Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
 
 % Conjunction
 conjunction(Number, X => Literal) --> [and], verb_phrase(Number, X => Literal).

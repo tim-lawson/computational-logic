@@ -112,6 +112,7 @@ def test_disjunction():
 
 def test_disjunction_three_term():
     """Test the CLI with disjunction rules."""
+    # Question is middle term
     cli(
         ("pixie is a pixel", REMEMBER),
         ("every pixel is red green or blue", REMEMBER),
@@ -123,7 +124,7 @@ def test_disjunction_three_term():
             "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not blue, therefore pixie is green",
         ),
     )
-
+    # Question is first term
     cli(
         ("pixie is a pixel", REMEMBER),
         ("every pixel is red green or blue", REMEMBER),
@@ -133,6 +134,19 @@ def test_disjunction_three_term():
         (
             "explain why pixie is red",
             "every pixel is red is green or is blue, pixie is a pixel, pixie is not green, pixie is not blue, therefore pixie is red",
+        ),
+    )
+
+    # Question is last term
+    cli(
+        ("pixie is a pixel", REMEMBER),
+        ("every pixel is red green or blue", REMEMBER),
+        ("pixie is not red", REMEMBER),
+        ("pixie is not green", REMEMBER),
+        ("is pixie blue", "pixie is blue"),
+        (
+            "explain why pixie is blue",
+            "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not green, therefore pixie is blue",
         ),
     )
 
