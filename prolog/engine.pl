@@ -146,18 +146,46 @@ prove_question_tree(Question, Output) :-
 % If the clause is true, we are done.
 prove_from_known_facts(true, _TruthValue, _FactList, ProofList, ProofList) :- !.
 
-% -- Conjunction
-prove_from_known_facts((Conjunct1, Conjunct2), TruthValue, FactList, ProofList, Proof) :-
-  !,
-  debug:debug('engine', 'conjunction: trying to prove ~q is ~q', [(Conjunct1, Conjunct2), TruthValue]),
-  % Find a clause of the form 'if Body1 then Conjunct1'.
-  utils:find_clause((Conjunct1 :- Body1), Fact, FactList),
-  debug:debug('engine', 'conjunction: found ~q :- ~q', [Conjunct1, Body1]),
-  % Concatenate Body1 and Conjunct2 into Body2.
-  utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
-  debug:debug('engine', 'conjunction: found ~q', [Body2]),
-  % Try to prove Body2. If the proof succeeds, then we have proven (Conjunct1, Conjunct2).
-  prove_from_known_facts(Body2, TruthValue, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
+% Proving disjunctive questions true. 
+prove_from_known_facts(FirstClause;OtherClauses, true, FactList, ProofList, Proof) :-
+  % A disjunction is true if any of its disjuncts are true.
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q', [FirstClause;OtherClauses, true]),
+  (
+    % Try to prove Body. If the proof succeeds, then we have proven Clause.
+    prove_from_known_facts(FirstClause, true, FactList, [], A)
+    ;
+    prove_from_known_facts(OtherClauses, true, FactList, [], B)
+  ),
+
+  append(A, B, C),
+  append(C, ProofList, Proof).
+
+% Proving disjunctive questions false. 
+prove_from_known_facts(FirstClause;OtherClauses, false, FactList, ProofList, Proof) :-
+  % A disjunction is false if all of its disjuncts are false.
+  debug:debug('engine', 'disjunctive question: trying to prove ~q;~q is ~q', [FirstClause, OtherClauses, false]),
+
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(FirstClause, false, FactList, [], A),
+  prove_from_known_facts(OtherClauses, false, FactList, [], B),
+
+  append(A, B, C),
+  append(C, ProofList, Proof),
+
+  debug:debug('engine', 'disjunctive question: proved Clause: ~q;~q :- false', [FirstClause, OtherClauses]).
+
+% % -- Conjunction
+% prove_from_known_facts((Conjunct1, Conjunct2), TruthValue, FactList, ProofList, Proof) :-
+%   !,
+%   debug:debug('engine', 'conjunction: trying to prove ~q is ~q', [(Conjunct1, Conjunct2), TruthValue]),
+%   % Find a clause of the form 'if Body1 then Conjunct1'.
+%   utils:find_clause((Conjunct1 :- Body1), Fact, FactList),
+%   debug:debug('engine', 'conjunction: found ~q :- ~q', [Conjunct1, Body1]),
+%   % Concatenate Body1 and Conjunct2 into Body2.
+%   utils:concatenate_conjunctive(Body1, Conjunct2, Body2),
+%   debug:debug('engine', 'conjunction: found ~q', [Body2]),
+%   % Try to prove Body2. If the proof succeeds, then we have proven (Conjunct1, Conjunct2).
+%   prove_from_known_facts(Body2, TruthValue, FactList, [proof((Conjunct1, Conjunct2), Fact)|ProofList], Proof).
 
 % -- Default reasoning
 prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
@@ -168,74 +196,104 @@ prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
   % Try to prove Body. If the proof succeeds, then we have proven default(Clause).
   prove_from_known_facts(Body, TruthValue, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
 
-% -- Implication
-prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
-  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, TruthValue]),
+% -- Implication (modus ponens) positive
+prove_from_known_facts(Clause, true, FactList, ProofList, Proof) :-
+  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, true]),
   % Find a clause of the form 'if Body then Clause'.
   utils:find_clause((Clause :- Body), Fact, FactList),
   debug:debug('engine', 'implication: found ~q :- ~q', [Clause, Body]),
   % Try to prove Body. If the proof succeeds, then we have proven Clause.
-  prove_from_known_facts(Body, TruthValue, FactList, [proof(Clause, Fact)|ProofList], Proof).
+  prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
+
+% -- Implication (modus ponens) negation
+prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
+  debug:debug('engine', '?: trying to prove ~q is ~q', [Clause, false]),
+  % Find a clause of the form 'if Body then Clause'.
+  utils:find_clause((negation(Clause) :- Body), Fact, FactList),
+  debug:debug('engine', 'implication: found ~q :- ~q', [negation(Clause), Body]),
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(Body, true, FactList, [proof(Clause, Fact)|ProofList], Proof).
 
 % -- Negation (modus tollens)
 prove_from_known_facts(Clause, false, FactList, ProofList, Proof) :-
-  debug:debug('engine', 'negation: trying to prove ~q is ~q', [negation(Clause), TruthValue]),
-  % Find a clause of the form 'if Clause then Body'.
-  utils:find_clause((Body :- Clause), Fact, FactList),
-  debug:debug('engine', 'negation: found ~q :- ~q', [Body, Clause]),
+  debug:debug('engine', 'negation: trying to prove ~q is ~q', [Clause, false]),
+  % If the clause we're trying to prove implies another fact, and we can prove that fact is false, then we can prove the clause is false.
+  utils:find_clause((Head :- Clause), Fact, FactList),
+  debug:debug('engine', 'negation: found ~q :- ~q', [Head, Clause]),
   % Try to prove the negation of Body. If the proof succeeds, then we have proven the negation of Clause.
-  prove_from_known_facts(negation(Body), TruthValue, FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
+  prove_from_known_facts(negation(Head), true, FactList, [proof(negation(Clause), Fact)|ProofList], Proof).
 
-% -- Disjunction
+% Disjunction - 2 term option
 prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q', [Clause, TruthValue]),
+  % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
   (
-    % Find a disjunctive rule of the form 'if Body then Clause xor Other'.
-    utils:find_clause((disjunction(Clause, Other) :- Body), Fact, FactList),
-    debug:debug('engine', 'disjunction: found disjunction(~q, ~q) :- ~q', [Clause, Other, Body])
-  ;
-    % Find a disjunctive rule of the form 'if Body then Other xor Clause'.
-    utils:find_clause((disjunction(Other, Clause) :- Body), Fact, FactList),
-    debug:debug('engine', 'disjunction: found disjunction(~q, ~q) :- ~q', [Other, Clause, Body])
+    utils:find_clause((Clause; OtherClauses :- Body), Fact, FactList);
+    utils:find_clause((OtherClauses ;Clause :- Body), Fact, FactList)
   ),
-  % Try to prove Body. If the proof succeeds, then we have proven Clause xor Other and vice versa.
-  prove_from_known_facts(Body, TruthValue, FactList, [], A),
-  debug:debug('engine', 'disjunction: proved Body: ~q', [Body]),
-  (
-    % Try to prove Clause.
-    TruthValue = true,
-    % Try to prove negation(Other). If the proof succeeds, then we have proven Clause.
-    prove_from_known_facts(negation(Other), TruthValue, FactList, [], B),
-    debug:debug('engine', 'disjunction: proved negation(Other): ~q', [negation(Other)]),
-    !,
-    % Concatenate the proofs of the Body, negation(Other), and Clause.
-    append(A, B, C),
-    append(C, ProofList, D),
-    Proof = [proof(Clause, Fact)|D],
-    debug:debug('engine', 'disjunction: proved Clause: ~q', [Clause])
-  ;
-    % Try to prove negation(Clause).
-    TruthValue = false,
-    % Try to prove Other. If the proof succeeds, then we have proven negation(Clause).
-    prove_from_known_facts(Other, TruthValue, FactList, [], E),
-    debug:debug('engine', 'disjunction: proved Other: ~q', [Other]),
-    !,
-    % Concatenate the proofs of the Body, Other, and negation(Clause).
-    append(A, E, C),
-    append(C, ProofList, D),
-    Proof = [proof(negation(Clause), Fact)|D],
-    debug:debug('engine', 'disjunction: proved negation(Clause): ~q', [negation(Clause)])
-  ).
 
-%% prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list)
-%
+  debug:debug('engine', 'disjunction: found ~q;~q :- ~q', [Clause, OtherClauses, Body]),
+
+  % Try to prove Body is true. If the proof succeeds, then we know one and only one of the disjuncts is true.
+  prove_from_known_facts(Body, true, FactList, [], A),
+
+  % Try to disprove all other disjuncts (TruthValue = true) or prove at least one other is true (TruthValue = false).
+  % If the proof succeeds, then we have proven the Clause.
+  (TruthValue = true -> NotTruthValue = false ; NotTruthValue = true),
+  
+  % When trying to prove the other disjuncts, we don't want to rematch with this disjunction or it'll loop endlessly.
+  % So we remove this disjunction from the fact list when trying to prove the other disjuncts.
+  (select([(Clause; OtherClauses :- Body)], FactList, SubFactList);
+  select([(OtherClauses; Clause :- Body)], FactList, SubFactList)),
+  
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [OtherClauses, NotTruthValue, SubFactList]),
+  prove_from_known_facts(OtherClauses, NotTruthValue, SubFactList, [], B), 
+
+  % Concatenate the proofs of the Body, negation(Other), and Clause.
+  append(A, B, C),
+  append(C, ProofList, D),
+  Proof = [proof(Clause, Fact)|D],
+  debug:debug('engine', 'disjunction: proved Clause: ~q', [Clause]).
+
+% Disjunction - 2+ term option
+prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
+  % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
+  utils:find_clause((ClausesBefore; Clause; ClausesAfter :- Body), Fact, FactList),
+
+  debug:debug('engine', 'disjunction: found ~q; ~q; ~q :- ~q', [Clause, ClausesBefore, ClausesAfter, Body]),
+
+  % Try to prove Body is true. If the proof succeeds, then we know one and only one of the disjuncts is true.
+  prove_from_known_facts(Body, true, FactList, [], A),
+
+  % Try to disprove all other disjuncts (TruthValue = true) or prove at least one other is true (TruthValue = false).
+  % If the proof succeeds, then we have proven the Clause.
+  (TruthValue = true -> NotTruthValue = false ; NotTruthValue = true),
+  
+  % When trying to prove the other disjuncts, we don't want to rematch with this disjunction or it'll loop endlessly.
+  % So we remove this disjunction from the fact list when trying to prove the other disjuncts.
+  select([(ClausesBefore; Clause; ClausesAfter :- Body)], FactList, SubFactList),
+  
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesBefore, NotTruthValue, SubFactList]),
+  prove_from_known_facts(ClausesBefore, NotTruthValue, SubFactList, [], B),
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesAfter, NotTruthValue, SubFactList]),
+  prove_from_known_facts(ClausesAfter, NotTruthValue, SubFactList, [], C), 
+
+  % Concatenate the proofs of the Body, negation(Other), and Clause.
+  append(A, B, AB),
+  append(AB, C, ABC),
+  append(ABC, ProofList, D),
+  Proof = [proof(Clause, Fact)|D],
+  debug:debug('engine', 'disjunction: proved Clause: ~q', [Clause]).
+
+
+% prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list)
+
 % The prove_from_known_facts/2 predicate also tries to prove a clause, but it does not
 % store the proof, i.e. only the answer is needed.
-%
+
 % @param +Clause: The clause to prove.
 % @param +TruthValue: The truth value of the clause (true or false).
 % @param +FactList: The list of facts to use.
-%
+
 prove_from_known_facts(Clause, TruthValue, FactList) :-
   prove_from_known_facts(Clause, TruthValue, FactList, [], _Proof).
 

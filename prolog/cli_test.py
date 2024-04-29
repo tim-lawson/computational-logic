@@ -84,14 +84,12 @@ def test_disjunction():
         ("is pixie blue", "pixie is not blue"),
         (
             "explain why pixie is blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is red, therefore pixie is not blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is red, therefore pixie is not blue",
         ),
         ("is pixie not blue", "pixie is not blue"),
         (
             "explain why pixie is not blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is red, therefore pixie is not blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is red, therefore pixie is not blue",
         ),
     )
 
@@ -102,13 +100,68 @@ pixie is red, therefore pixie is not blue",
         ("is pixie blue", "pixie is blue"),
         (
             "explain why pixie is blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is not red, therefore pixie is blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is not red, therefore pixie is blue",
         ),
         ("is pixie not blue", "pixie is blue"),
         (
             "explain why pixie is not blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is not red, therefore pixie is blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is not red, therefore pixie is blue",
+        ),
+    )
+
+
+def test_disjunction_three_term():
+    """Test the CLI with disjunction rules."""
+    # Question is middle term
+    cli(
+        ("pixie is a pixel", REMEMBER),
+        ("every pixel is red green or blue", REMEMBER),
+        ("pixie is not red", REMEMBER),
+        ("pixie is not blue", REMEMBER),
+        ("is pixie green", "pixie is green"),
+        (
+            "explain why pixie is green",
+            "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not blue, therefore pixie is green",
+        ),
+    )
+    # Question is first term
+    cli(
+        ("pixie is a pixel", REMEMBER),
+        ("every pixel is red green or blue", REMEMBER),
+        ("pixie is not green", REMEMBER),
+        ("pixie is not blue", REMEMBER),
+        ("is pixie red", "pixie is red"),
+        (
+            "explain why pixie is red",
+            "every pixel is red is green or is blue, pixie is a pixel, pixie is not green, pixie is not blue, therefore pixie is red",
+        ),
+    )
+
+    # Question is last term
+    cli(
+        ("pixie is a pixel", REMEMBER),
+        ("every pixel is red green or blue", REMEMBER),
+        ("pixie is not red", REMEMBER),
+        ("pixie is not green", REMEMBER),
+        ("is pixie blue", "pixie is blue"),
+        (
+            "explain why pixie is blue",
+            "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not green, therefore pixie is blue",
+        ),
+    )
+
+
+def test_disjunctive_questions():
+    cli(
+        ("pixie is red", REMEMBER),
+        ("is pixie red or blue", "pixie is red or is blue"),
+        (
+            "explain why pixie is red or blue",
+            "pixie is red, therefore pixie is red or is blue",
+        ),
+        ("is pixie blue or red", "pixie is blue or is red"),
+        (
+            "explain why pixie is blue or red",
+            "pixie is red, therefore pixie is blue or is red",
         ),
     )

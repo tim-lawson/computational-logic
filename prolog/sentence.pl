@@ -30,30 +30,60 @@ sentence_word --> [that].
 %
 % @param Sentence The list of atoms.
 %
+% Note "=>" is used here two allow two atoms to be unified to one in grammar.pl, ususally "ToLiteral"
+% This is useful as the two need to be passed through several layers of grammar together
+% e.g. verb_phrase->property->adjective->predicate_to_grammar
+% It does not perform any special functionality. Any arithmetic operator can be used (+/-; etc) as long
+% as grammar:predicate_to_grammar is updated accordingly to destructure it again. 
 
-sentence_body(Sentence) -->
-  grammar:determiner(Number, ToBody, ToHead, Sentence),
-  grammar:noun(Number, ToBody),
-  grammar:verb_phrase(Number, ToHead).
 
-sentence_body(Sentence) -->
-  grammar:determiner(Number, ToBody, X => negation(Head), Sentence),
-  grammar:noun(Number, ToBody),
-  grammar:verb_phrase(Number, negation(X => Head)).
+% Here X is the variable that appears in both the head and body
+% E.g. mortal(X) :- human(X). It's created here and passed to both
+% So each side refers to the *same* variable.
+%  TODO: Can collapse with structure like:
+%   sentence_body([(Head / Applicability :- Body)]) -->
+%   grammar:determiner(Number, Applicability),
+%   grammar:noun(Number, _ => Body),
+%   grammar:verb_phrase(Number, _ => Head).
 
-sentence_body(Sentence) -->
-  grammar:determiner(Number, ToBody, X => disjunction(Head1, Head2), Sentence),
-  grammar:noun(Number, ToBody),
-  grammar:verb_phrase(Number, (disjunction((X => Head1), (X => Head2)))).
-
-sentence_body([Head :- true]) -->
-  grammar:proper_noun(Number, X),
+sentence_body([(Head :- Body)]) -->
+  grammar:determiner(Number, all),
+  grammar:noun(Number, X => Body),
   grammar:verb_phrase(Number, X => Head).
 
-sentence_body([negation(Head) :- true]) -->
-  grammar:proper_noun(Number, X),
-  grammar:verb_phrase(Number, negation(X => Head)).
+sentence_body([(default(Head) :- Body)]) -->
+  grammar:determiner(Number, default),
+  grammar:noun(Number, X => Body),
+  grammar:verb_phrase(Number, X => Head).
 
-sentence_body([disjunction(Head1, Head2) :- true]) -->
-  grammar:proper_noun(Number, X),
-  grammar:verb_phrase(Number, (disjunction((X => Head1), (X => Head2)))).
+sentence_body([(some(Head) :- Body)]) -->
+  grammar:determiner(Number, some),
+  grammar:noun(Number, X => Body),
+  grammar:verb_phrase(Number, X => Head).
+
+% Disjunction and conjunction are handled separately
+sentence_body([(Head :- Body)]) -->
+  grammar:determiner(Number, all),
+  grammar:noun(Number, X => Body),
+  grammar:disjunction(Number, X => Head).
+
+sentence_body([(Head :- Body)]) -->
+  grammar:determiner(Number, all),
+  grammar:noun(Number, X => Body),
+  grammar:conjunction(Number, X => Head).
+
+% Here ProperNoun is bound to a value by proper_noun
+% It is passed to verb_phrase so it can be used as the atom of Head
+% E.g. human(alice) :- true. 
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, ProperNoun),
+  grammar:verb_phrase(Number, ProperNoun => Head).
+
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, ProperNoun),
+  grammar:disjunction(Number, ProperNoun => Head).
+
+sentence_body([Head :- true]) -->
+  grammar:proper_noun(Number, ProperNoun),
+  grammar:conjunction(Number, ProperNoun => Head).
+

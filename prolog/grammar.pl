@@ -79,18 +79,36 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Word The property or verb.
 %
 
-verb_phrase(singular, Property) --> [is], property(singular, Property).
-verb_phrase(singular, negation(Property)) --> [is, not], property(singular, Property).
-verb_phrase(singular, disjunction(Property1, Property2)) --> [is], property(singular, Property1), [or], property(singular, Property2).
+verb_phrase(singular, ToLiteral) --> [is], property(singular, ToLiteral).
+verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/false).
 
-verb_phrase(plural, Property) --> [are], property(plural, Property).
-verb_phrase(plural, negation(Property)) --> [are, not], property(plural, Property).
-verb_phrase(plural, disjunction(Property1, Property2)) --> [are], property(plural, Property1), [or], property(plural, Property2).
 
-verb_phrase(Number, IntransitiveVerb) --> intransitive_verb(Number, IntransitiveVerb).
+verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
+verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
 
-verb_phrase(singular, negation(IntransitiveVerb)) --> [does, not], intransitive_verb(plural, IntransitiveVerb).
-verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, negation(IntransitiveVerb)).
+verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
+
+verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
+verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
+
+% Disjunction
+% Here X is either:
+% - a proper noun for cases like "Alice is human or a bird" as we need to pass that on to get [human(alice), bird(alice)]
+% - or nothing for cases like "all pixels are red or green" as we don't need to pass pixel on to get [red(X), green(X)]
+disjunction(Number, X => Literal) --> [or], verb_phrase(Number, X => Literal).
+disjunction(Number, X => Literal) --> [or], intransitive_verb(Number, X => Literal).
+disjunction(Number, X => Literal) --> [or], property(Number, X => Literal).
+disjunction(Number, X => (Literal;Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal;Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal;Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
+
+% Conjunction
+conjunction(Number, X => Literal) --> [and], verb_phrase(Number, X => Literal).
+conjunction(Number, X => Literal) --> [and], intransitive_verb(Number, X => Literal).
+conjunction(Number, X => Literal) --> [and], property(Number, X => Literal).
+conjunction(Number, X => (Literal,Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal,Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal,Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -100,7 +118,7 @@ verb_phrase(plural, IntransitiveVerb) --> [do, not], intransitive_verb(plural, n
 % @param Number The grammatical number.
 % @param Word The adjective or noun.
 %
-property(Number, Adjective) --> adjective(Number, Adjective).
+property(_, Adjective) --> adjective(Adjective).
 
 property(singular, Noun) --> [a], noun(singular, Noun).
 property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
@@ -120,30 +138,27 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 %
 
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, X => Body, X => Head, [(Head :- Body)]) --> [every].
-determiner(plural, X => Body, X => Head, [(Head :- Body)]) --> [all].
-
-% If the determiner is like "no", then the body of the rule implies the negation of the head.
-determiner(singular, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [every].
-determiner(plural, X => Body, X => negation(Head), [(negation(Head) :- Body)]) --> [all].
+determiner(singular, all) --> [every].
+determiner(plural, all) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [most].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [many].
-determiner(plural, X => Body, X => Head, [(default(Head) :- Body)]) --> [a, lot, of].
+determiner(plural, default) --> [most].
+determiner(plural, default) --> [many].
+determiner(plural, default) --> [a, lot, of].
 
-determiner(singular, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [every].
+determiner(plural, some) --> [some].
+
+% determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
 determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
 
-%% adjective(?Number:atom, ?ToLiteral:atom)//
+%% adjective(?ToLiteral:atom)//
 %
-% The adjective//2 DCG rule defines adjectives.
-% It relates the adjective, its grammatical number, and its literal.
+% The adjective//1 DCG rule defines adjectives.
+% It relates the adjective and its literal.
 %
-% @param ?Number The grammatical number.
-% @param ?ToLiteral The adjective and its literal.
+% @param ?ToLiteral The adjective and its literal in the form Noun => Adjective(Noun).
 %
-adjective(_, ToLiteral) -->
+adjective(ToLiteral) -->
   [Adjective],
   {
       predicate_to_grammar(_Predicate, 1, adj/Adjective, ToLiteral)
@@ -244,6 +259,14 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 % @param ToLiteral The word and its literal.
 %
 predicate_to_grammar(Predicate, 1, WordCategory/Word, X => Literal) :-
+  % If predicate is a unary predicate of arity 1 and...
+  predicate(Predicate, 1, Words),
+  % WordCategory/Word is a member of Words...
+  member(WordCategory/Word, Words),
+  % Construct Literal from Predicate and X.
+  Literal=..[Predicate, X].
+
+predicate_to_grammar(Predicate, 1, WordCategory/Word, (X => negation(Literal))/false) :-
   % If predicate is a unary predicate of arity 1 and...
   predicate(Predicate, 1, Words),
   % WordCategory/Word is a member of Words...
