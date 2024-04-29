@@ -84,14 +84,12 @@ def test_disjunction():
         ("is pixie blue", "pixie is not blue"),
         (
             "explain why pixie is blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is red, therefore pixie is not blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is red, therefore pixie is not blue",
         ),
         ("is pixie not blue", "pixie is not blue"),
         (
             "explain why pixie is not blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is red, therefore pixie is not blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is red, therefore pixie is not blue",
         ),
     )
 
@@ -102,13 +100,22 @@ pixie is red, therefore pixie is not blue",
         ("is pixie blue", "pixie is blue"),
         (
             "explain why pixie is blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is not red, therefore pixie is blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is not red, therefore pixie is blue",
         ),
         ("is pixie not blue", "pixie is blue"),
         (
             "explain why pixie is not blue",
-            "every pixel is red or blue, pixie is a pixel, \
-pixie is not red, therefore pixie is blue",
+            "every pixel is red or is blue, pixie is a pixel, pixie is not red, therefore pixie is blue",
         ),
     )
+
+
+# def test_disjunction_two_plus():
+#     """Test the CLI with disjunction rules."""
+
+#     cli(
+#         ("pixie is a pixel", REMEMBER),
+#         ("every pixel is red green or blue", REMEMBER),
+#         ("pixie is not red and is not blue", REMEMBER),
+#         ("is pixie green", "pixie is green"),
+#     )
