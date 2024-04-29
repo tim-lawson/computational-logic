@@ -256,6 +256,29 @@ prove_from_known_facts(Clause, TruthValue, FactList, ProofList, Proof) :-
   Proof = [proof(Clause, Fact)|D],
   debug:debug('engine', 'disjunction: proved Clause: ~q', [Clause]).
 
+% Proving disjunctive questions true. 
+prove_from_known_facts(FirstClause;OtherClauses, true, FactList, ProofList, Proof) :-
+  % A disjunction is true if any of its disjuncts are true.
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q', [FirstClause;OtherClauses, true]),
+  (
+    % Find a clause of the form 'if Body then First'.
+    utils:find_clause((FirstClause :- Body), Fact, FactList),
+    % Try to prove Body. If the proof succeeds, then we have proven Clause.
+    prove_from_known_facts(Body, true, FactList, [proof(FirstClause, Fact)|ProofList], Proof)
+    ;
+    prove_from_known_facts(OtherClauses, true, FactList, ProofList, Proof)
+  ).
+
+% Proving disjunctive questions false. 
+prove_from_known_facts(FirstClause;OtherClauses, false, FactList, ProofList, Proof) :-
+  % A disjunction is false if all of its disjuncts are false.
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q', [FirstClause;OtherClauses, false]),
+
+  % Find a clause of the form 'if Body then First'.
+  utils:find_clause((FirstClause :- Body), Fact, FactList),
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(Body, false, FactList, [proof(FirstClause, Fact)|ProofList], Proof),
+  prove_from_known_facts(OtherClauses, false, FactList, ProofList, Proof).
 
 
 % prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list)
