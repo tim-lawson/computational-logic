@@ -208,15 +208,6 @@ prove_from_known_facts((FirstClause, OtherClauses), false, Certainty, FactList, 
 
   debug:debug('engine', 'conjunctive question: proved Clause: ~q;~q :- false', [FirstClause, OtherClauses]).
 
-% -- Default reasoning
-% prove_from_known_facts(Clause, TruthValue, Certainty, FactList, ProofList, Proof) :-
-%   debug:debug('engine', 'default: trying to prove ~q is ~q', [Clause, TruthValue]),
-%   % Find a clause of the form 'if Body then default(Clause)'.
-%   utils:find_clause((Clause :- Body | 0.75), Fact, FactList),
-%   debug:debug('engine', 'default: found ~q :- ~q', [Clause, Body]),
-%   % Try to prove Body. If the proof succeeds, then we have proven default(Clause).
-%   prove_from_known_facts(Body, TruthValue, Certainty, FactList, [proof(default(Clause), Fact)|ProofList], Proof).
-
 % -- Implication (modus ponens) positive
 prove_from_known_facts(Clause, true, NewCertainty, FactList, ProofList, Proof) :-
   debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, true]),
