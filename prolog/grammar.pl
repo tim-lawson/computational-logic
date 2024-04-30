@@ -53,7 +53,7 @@ predicate(heads, 1, [adj/heads]).
 predicate(tails, 1, [adj/tails]).
 
 predicate(prize, 1, [noun/prize]).
-predicate(win, 1, [verb/win]).
+predicate(win_prizes, 1, [verb/win_prizes]).
 
 predicate(penguin, 1, [noun/penguin]).
 
@@ -248,6 +248,7 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
   (
     % Irregular forms
     PluralVerb = fly -> SingularVerb = flies;
+    PluralVerb = wins_prizes -> SingularVerb = win_prizes;
     % Regular forms
     atom_concat(PluralVerb, s, SingularVerb)
   ).
