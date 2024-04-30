@@ -47,4 +47,4 @@ command(goal(engine:find_known_facts_noun(ProperNoun, Output), Output)) -->
 % Output the proof tree for a question.
 command(goal(engine:prove_question_tree(Question, Output), Output)) -->
   [explain, why],
-  sentence:sentence_body([(Question :- true)]).
+  sentence:sentence_body([(Question :- true | _)]).
