@@ -47,18 +47,18 @@ sentence_word --> [that].
 %   grammar:verb_phrase(Number, _ => Head).
 
 sentence_body([(Head :- Body | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, normal),
   grammar:noun(Number, X => Body),
   grammar:verb_phrase(Number, X => Head).
 
 % Disjunction and conjunction are handled separately
 sentence_body([(Head :- Body | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, normal),
   grammar:noun(Number, X => Body),
   grammar:disjunction(Number, X => Head).
 
 sentence_body([(Head :- Body | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, normal),
   grammar:noun(Number, X => Body),
   grammar:conjunction(Number, X => Head).
 
@@ -66,17 +66,17 @@ sentence_body([(Head :- Body | Certainty)]) -->
 % It is passed to verb_phrase so it can be used as the atom of Head
 % E.g. human(alice) :- true. 
 sentence_body([(Head :- true | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, proper),
   grammar:proper_noun(Number, ProperNoun),
   grammar:verb_phrase(Number, ProperNoun => Head).
 
 sentence_body([(Head :- true | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, proper),
   grammar:proper_noun(Number, ProperNoun),
   grammar:disjunction(Number, ProperNoun => Head).
 
 sentence_body([(Head :- true | Certainty)]) -->
-  grammar:determiner(Number, Certainty),
+  grammar:determiner(Number, Certainty, proper),
   grammar:proper_noun(Number, ProperNoun),
   grammar:conjunction(Number, ProperNoun => Head).
 

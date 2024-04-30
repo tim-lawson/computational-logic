@@ -35,6 +35,7 @@ negation(negation(X)) :- X.
 
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
+predicate(genius, 1, [adj/genius, noun/genius]).
 
 predicate(bird, 1, [noun/bird]).
 predicate(penguin, 1, [noun/penguin]).
@@ -51,6 +52,11 @@ predicate(blue, 1, [adj/blue]).
 predicate(coin, 1, [noun/coin]).
 predicate(heads, 1, [adj/heads]).
 predicate(tails, 1, [adj/tails]).
+
+predicate(prize, 1, [noun/prize]).
+predicate(win, 1, [verb/win]).
+
+predicate(penguin, 1, [noun/penguin]).
 
 % --- Vocabulary and grammar ---
 
@@ -137,20 +143,21 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 % @param ?Rule The rule.
 %
 
+% NOTE: The first option is the one picked when generating answers
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, 1) --> [].
-determiner(plural, 1) --> [].
-determiner(singular, 1) --> [every].
-determiner(plural, 1) --> [all].
+determiner(singular, 1, proper) --> [].
+determiner(plural, 1, proper) --> [].
+determiner(singular, 1, normal) --> [every].
+determiner(plural, 1, normal) --> [all].
 
 % If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(singular, 0.75) --> [it, is, likely, that].
-determiner(plural, 0.75) --> [most].
-determiner(plural, 0.75) --> [many].
-determiner(plural, 0.75) --> [a, lot, of].
+determiner(plural, 0.75, normal) --> [most].
+determiner(plural, 0.75, normal) --> [many].
+determiner(plural, 0.75, normal) --> [a, lot, of].
+determiner(singular, 0.75, proper) --> [it, is, likely, that].
 
-determiner(singular, 0.5) --> [it, could, be, that].
-determiner(plural, 0.5) --> [some].
+determiner(plural, 0.5, normal) --> [some].
+determiner(singular, 0.5, proper) --> [it, could, be, that].
 
 %% adjective(?ToLiteral:atom)//
 %
@@ -227,6 +234,7 @@ noun_singular_to_plural(SingularNoun, PluralNoun) :-
     % Irregular forms
     SingularNoun = woman -> PluralNoun = women;
     SingularNoun = man -> PluralNoun = men;
+    SingularNoun = genius -> PluralNoun = geniuses;
     % Regular forms
     atom_concat(SingularNoun, s, PluralNoun)
   ).
