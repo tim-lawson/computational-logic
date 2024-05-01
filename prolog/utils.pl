@@ -4,8 +4,7 @@
 %
 :- module(utils, [concatenate_conjunctive/3, known_fact/1, try/1]).
 
-% This predicate warns on variables that appear once in a clause that don't start with
-% an underscore.
+% This predicate warns on variables that appear once in a clause that don't start with an underscore.
 :-style_check(-singleton).
 
 % --- Configuration ---

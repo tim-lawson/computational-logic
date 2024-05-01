@@ -71,9 +71,7 @@ predicate(penguin, 1, [noun/penguin]).
 proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
-
 proper_noun(singular, donald) --> [donald].
-
 proper_noun(singular, pixie) --> [pixie].
 
 %% verb_phrase(?Number:atom, ?Word:atom)//
@@ -84,10 +82,8 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Number The grammatical number.
 % @param Word The property or verb.
 %
-
 verb_phrase(singular, ToLiteral) --> [is], property(singular, ToLiteral).
 verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/false).
-
 
 verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
 verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
@@ -97,24 +93,25 @@ verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
 verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
 verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
 
-% Disjunction
-% Here X is either:
-% - a proper noun for cases like "Alice is human or a bird" as we need to pass that on to get [human(alice), bird(alice)]
-% - or nothing for cases like "all pixels are red or green" as we don't need to pass pixel on to get [red(X), green(X)]
+% Disjunction. X is either:
+% - a proper noun for cases like "Alice is human or a bird" as we need to pass on `alice`
+%   to get `[human(alice), bird(alice)]`.
+% - or nothing for cases like "all pixels are red or green" as we don't need to pass on
+%   `pixel` to get `[red(X), green(X)]`.
 disjunction(Number, X => Literal) --> [or], verb_phrase(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], intransitive_verb(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], property(Number, X => Literal).
-disjunction(Number, X => (Literal;Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => (Literal;Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => (Literal;Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
 
 % Conjunction
 conjunction(Number, X => Literal) --> [and], verb_phrase(Number, X => Literal).
 conjunction(Number, X => Literal) --> [and], intransitive_verb(Number, X => Literal).
 conjunction(Number, X => Literal) --> [and], property(Number, X => Literal).
-conjunction(Number, X => (Literal,Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
-conjunction(Number, X => (Literal,Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
-conjunction(Number, X => (Literal,Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -150,12 +147,13 @@ determiner(plural, 1, proper) --> [].
 determiner(singular, 1, normal) --> [every].
 determiner(plural, 1, normal) --> [all].
 
-% If the determiner is like "most", then the body of the rule implies the head *by default*.
+% If the determiner is like "most", then the body of the rule likely implies the head.
 determiner(plural, 0.75, normal) --> [most].
 determiner(plural, 0.75, normal) --> [many].
 determiner(plural, 0.75, normal) --> [a, lot, of].
 determiner(singular, 0.75, proper) --> [it, is, likely, that].
 
+% If the determiner is like "some", then the body of the rule could imply the head.
 determiner(plural, 0.5, normal) --> [some].
 determiner(singular, 0.5, proper) --> [it, could, be, that].
 

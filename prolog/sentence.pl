@@ -27,19 +27,18 @@ sentence_word --> [that].
 %% sentence_body(?Sentence:list)//
 %
 % The sentence_body//1 DCG rule parses a list of atoms into a sentence body.
+% The operator "=>" is used to unify two atoms in `grammar.pl`, usually ToLiteral.
+% This is handy because we need to pass them both through several layers of the grammar module,
+% e.g., verb_phrase -> property -> adjective -> predicate_to_grammar.
+% The operator itself does not do anything special -- it could be any arithmetic operator,
+% provided that it is destructured accordingly in `grammar:predicate_to_grammar`.
 %
 % @param Sentence The list of atoms.
 %
-% Note "=>" is used here two allow two atoms to be unified to one in grammar.pl, ususally "ToLiteral"
-% This is useful as the two need to be passed through several layers of grammar together
-% e.g. verb_phrase->property->adjective->predicate_to_grammar
-% It does not perform any special functionality. Any arithmetic operator can be used (+/-; etc) as long
-% as grammar:predicate_to_grammar is updated accordingly to destructure it again. 
 
-
-% Here X is the variable that appears in both the head and body
-% E.g. mortal(X) :- human(X). It's created here and passed to both
-% So each side refers to the *same* variable.
+% Here X is the variable that appears in both the head and body, e.g., `mortal(X) :- human(X).`
+% It's created here and passed to both, so each side refers to the *same* variable.
+%
 %  TODO: Can collapse with structure like:
 %   sentence_body([(Head / Applicability :- Body)]) -->
 %   grammar:determiner(Number, Applicability),
@@ -51,7 +50,7 @@ sentence_body([(Head :- Body | Certainty)]) -->
   grammar:noun(Number, X => Body),
   grammar:verb_phrase(Number, X => Head).
 
-% Disjunction and conjunction are handled separately
+% Disjunction and conjunction are handled separately.
 sentence_body([(Head :- Body | Certainty)]) -->
   grammar:determiner(Number, Certainty, normal),
   grammar:noun(Number, X => Body),
@@ -62,9 +61,8 @@ sentence_body([(Head :- Body | Certainty)]) -->
   grammar:noun(Number, X => Body),
   grammar:conjunction(Number, X => Head).
 
-% Here ProperNoun is bound to a value by proper_noun
-% It is passed to verb_phrase so it can be used as the atom of Head
-% E.g. human(alice) :- true. 
+% ProperNoun is bound to a value by `proper_noun`.
+% It is passed to `verb_phrase` so it can be used as the atom of Head, e.g., `human(alice) :- true.`
 sentence_body([(Head :- true | Certainty)]) -->
   grammar:determiner(Number, Certainty, proper),
   grammar:proper_noun(Number, ProperNoun),
