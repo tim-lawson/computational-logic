@@ -152,6 +152,7 @@ def test_disjunction_three_term():
 
 
 def test_disjunctive_questions():
+    """Test the CLI with disjunctive questions."""
     cli(
         ("pixie is red", REMEMBER),
         ("is pixie red or blue", "pixie is red or is blue"),
@@ -193,4 +194,17 @@ def test_conjunction_questions():
     cli(
         ("bob is human mortal and does not fly", REMEMBER),
         ("is bob mortal and human", "bob is mortal and is human"),
+    )
+
+
+def test_default():
+    """Test the CLI with default rules."""
+    cli(
+        ("most birds fly", REMEMBER),
+        ("alice is a bird", REMEMBER),
+        ("does alice fly", "it is likely that alice flies"),
+        (
+            "explain why alice flies",
+            "alice is a bird, most birds fly, therefore it is likely that alice flies",
+        ),
     )

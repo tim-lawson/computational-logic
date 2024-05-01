@@ -35,6 +35,7 @@ negation(negation(X)) :- X.
 
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
+predicate(genius, 1, [adj/genius, noun/genius]).
 
 predicate(bird, 1, [noun/bird]).
 predicate(penguin, 1, [noun/penguin]).
@@ -52,6 +53,11 @@ predicate(coin, 1, [noun/coin]).
 predicate(heads, 1, [adj/heads]).
 predicate(tails, 1, [adj/tails]).
 
+predicate(prize, 1, [noun/prize]).
+predicate(win, 1, [verb/win]).
+
+predicate(penguin, 1, [noun/penguin]).
+
 % --- Vocabulary and grammar ---
 
 %% proper_noun(?Number:atom, ?Word:atom)//
@@ -65,9 +71,7 @@ predicate(tails, 1, [adj/tails]).
 proper_noun(singular, alice) --> [alice].
 proper_noun(singular, bob) --> [bob].
 proper_noun(singular, charlie) --> [charlie].
-
 proper_noun(singular, donald) --> [donald].
-
 proper_noun(singular, pixie) --> [pixie].
 
 %% verb_phrase(?Number:atom, ?Word:atom)//
@@ -78,10 +82,8 @@ proper_noun(singular, pixie) --> [pixie].
 % @param Number The grammatical number.
 % @param Word The property or verb.
 %
-
 verb_phrase(singular, ToLiteral) --> [is], property(singular, ToLiteral).
 verb_phrase(singular, ToLiteral) --> [is, not], property(singular, ToLiteral/false).
-
 
 verb_phrase(plural, ToLiteral) --> [are], property(plural, ToLiteral).
 verb_phrase(plural, ToLiteral) --> [are, not], property(plural, ToLiteral/false).
@@ -91,24 +93,25 @@ verb_phrase(Number, ToLiteral) --> intransitive_verb(Number, ToLiteral).
 verb_phrase(singular, ToLiteral) --> [does, not], intransitive_verb(plural, ToLiteral/false).
 verb_phrase(plural, ToLiteral) --> [do, not], intransitive_verb(plural, ToLiteral/false).
 
-% Disjunction
-% Here X is either:
-% - a proper noun for cases like "Alice is human or a bird" as we need to pass that on to get [human(alice), bird(alice)]
-% - or nothing for cases like "all pixels are red or green" as we don't need to pass pixel on to get [red(X), green(X)]
+% Disjunction. X is either:
+% - a proper noun for cases like "Alice is human or a bird" as we need to pass on `alice`
+%   to get `[human(alice), bird(alice)]`.
+% - or nothing for cases like "all pixels are red or green" as we don't need to pass on
+%   `pixel` to get `[red(X), green(X)]`.
 disjunction(Number, X => Literal) --> [or], verb_phrase(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], intransitive_verb(Number, X => Literal).
 disjunction(Number, X => Literal) --> [or], property(Number, X => Literal).
-disjunction(Number, X => (Literal;Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => (Literal;Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
-disjunction(Number, X => (Literal;Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> verb_phrase(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> intransitive_verb(Number, X => Literal), disjunction(Number, X => Rest).
+disjunction(Number, X => (Literal; Rest)) --> property(Number, X => Literal), disjunction(Number, X => Rest).
 
 % Conjunction
 conjunction(Number, X => Literal) --> [and], verb_phrase(Number, X => Literal).
 conjunction(Number, X => Literal) --> [and], intransitive_verb(Number, X => Literal).
 conjunction(Number, X => Literal) --> [and], property(Number, X => Literal).
-conjunction(Number, X => (Literal,Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
-conjunction(Number, X => (Literal,Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
-conjunction(Number, X => (Literal,Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> verb_phrase(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> intransitive_verb(Number, X => Literal), conjunction(Number, X => Rest).
+conjunction(Number, X => (Literal, Rest)) --> property(Number, X => Literal), conjunction(Number, X => Rest).
 
 %% property(?Number:atom, ?Word:atom)//
 %
@@ -137,19 +140,22 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 % @param ?Rule The rule.
 %
 
+% NOTE: The first option is the one picked when generating answers
 % If the determiner is like "all", then the body of the rule implies the head.
-determiner(singular, all) --> [every].
-determiner(plural, all) --> [all].
+determiner(singular, 1, proper) --> [].
+determiner(plural, 1, proper) --> [].
+determiner(singular, 1, normal) --> [every].
+determiner(plural, 1, normal) --> [all].
 
-% If the determiner is like "most", then the body of the rule implies the head *by default*.
-determiner(plural, default) --> [most].
-determiner(plural, default) --> [many].
-determiner(plural, default) --> [a, lot, of].
+% If the determiner is like "most", then the body of the rule likely implies the head.
+determiner(plural, 0.75, normal) --> [most].
+determiner(plural, 0.75, normal) --> [many].
+determiner(plural, 0.75, normal) --> [a, lot, of].
+determiner(singular, 0.75, proper) --> [it, is, likely, that].
 
-determiner(plural, some) --> [some].
-
-% determiner(singular, X => Body,  HeadList, [(disjunction(HeadList) :- Body)]) --> [every].
-determiner(plural, X => Body, X => disjunction(Head1, Head2), [(disjunction(Head1, Head2) :- Body)]) --> [all].
+% If the determiner is like "some", then the body of the rule could imply the head.
+determiner(plural, 0.5, normal) --> [some].
+determiner(singular, 0.5, proper) --> [it, could, be, that].
 
 %% adjective(?ToLiteral:atom)//
 %
@@ -226,6 +232,7 @@ noun_singular_to_plural(SingularNoun, PluralNoun) :-
     % Irregular forms
     SingularNoun = woman -> PluralNoun = women;
     SingularNoun = man -> PluralNoun = men;
+    SingularNoun = genius -> PluralNoun = geniuses;
     % Regular forms
     atom_concat(SingularNoun, s, PluralNoun)
   ).

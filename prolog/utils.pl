@@ -4,8 +4,7 @@
 %
 :- module(utils, [concatenate_conjunctive/3, known_fact/1, try/1]).
 
-% This predicate warns on variables that appear once in a clause that don't start with
-% an underscore.
+% This predicate warns on variables that appear once in a clause that don't start with an underscore.
 :-style_check(-singleton).
 
 % --- Configuration ---
@@ -67,7 +66,7 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param -ClauseList: The list of clauses generated based on the term.
 %
 
-transform(Term, [(Term :- true)]).
+transform((Term | Certainty), [(Term :- true | Certainty)]).
 
 %% try(+X)
 %

@@ -15,13 +15,12 @@ If the input is `stop', the predicate terminates.
 Otherwise, it calls itself to read the next line of input.
 
     \predicate[private]{handle_input}{2}{+Input:string, -Output:string}
-The \predref{handle_input}{2} predicate preprocesses the input and tries to parse it as either a
-sentence, a question, or command.
-If the input cannot be parsed, it outputs a default message.
+The \predref{handle_input}{2} predicate preprocesses the input and tries to parse it as a sentence, question, or command.
+If the input cannot be parsed, it outputs a default response.
 
 \begin{arguments}
 \arg{\Splus} & \arg{Input} The user input. \\
-\arg{\Sminus} & \arg{Output} The generated or default output. \\
+\arg{\Sminus} & \arg{Output} The generated output. \\
 \end{arguments}
 
     \predicate[private]{preprocess_input}{2}{+Input:string, -Output:list}
@@ -108,7 +107,7 @@ sentence and concatenates the sentences into the output.
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{5}{+Clause:atom, +TruthValue:atom, +FactList:list, -ProofList:list, -Proof:atom}
+    \predicate[private]{prove_from_known_facts}{6}{+Clause:atom, +TruthValue:atom, -Certainty:int, +FactList:list, -ProofList:list, -Proof:atom}
 The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
 If the clause can be proved, it stores the proof in the output.
 The proof is a list of steps, where each step is a fact that was used to prove the clause.
@@ -116,20 +115,10 @@ The proof is a list of steps, where each step is a fact that was used to prove t
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
 \arg{\Splus} & \arg{TruthValue}: The truth value of the clause (true or false). \\
+\arg{\Splus} & \arg{Certainty}: The accumulated certainty of the proof. \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use. \\
 \arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
 \arg{\Sminus} & \arg{Proof}: The generated proof.
-  \\
-\end{arguments}
-
-    \predicate[private]{prove_from_known_facts}{3}{+Clause:atom, +TruthValue:atom, +FactList:list}
-The \predref{prove_from_known_facts}{2} predicate also tries to prove a clause, but it does not
-store the proof, i.e. only the answer is needed.
-
-\begin{arguments}
-\arg{\Splus} & \arg{Clause}: The clause to prove. \\
-\arg{\Splus} & \arg{TruthValue}: The truth value of the clause (true or false). \\
-\arg{\Splus} & \arg{FactList}: The list of facts to use.
   \\
 \end{arguments}
 
@@ -268,13 +257,12 @@ grammatical number, its corresponding rule, and a list of atoms that refer to it
   \\
 \end{arguments}
 
-    \dcg[private]{adjective}{2}{?Number:atom, ?ToLiteral:atom}
-The \dcgref{adjective}{2} DCG rule defines adjectives.
-It relates the adjective, its grammatical number, and its literal.
+    \dcg[private]{adjective}{1}{?ToLiteral:atom}
+The \dcgref{adjective}{1} DCG rule defines adjectives.
+It relates the adjective and its literal.
 
 \begin{arguments}
-\arg{\Squest} & \arg{Number} The grammatical number. \\
-\arg{\Squest} & \arg{ToLiteral} The adjective and its literal.
+\arg{\Squest} & \arg{ToLiteral} The adjective and its literal in the form Noun \Sssu{} Adjective(Noun).
   \\
 \end{arguments}
 
@@ -365,6 +353,11 @@ The \dcgref{sentence}{1} DCG rule parses a list of atoms into a sentence.
 
     \dcg{sentence_body}{1}{?Sentence:list}
 The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence body.
+The operator "\Sssu{}" is used to unify two atoms in \verb$grammar.pl$, usually ToLiteral.
+This is handy because we need to pass them both through several layers of the grammar module,
+e.g., verb_phrase \Sifthen{} property \Sifthen{} adjective \Sifthen{} predicate_to_grammar.
+The operator itself does not do anything special -- it could be any arithmetic operator,
+provided that it is destructured accordingly in \verb$grammar:predicate_to_grammar$.
 
 \begin{arguments}
 \arg{Sentence} & The list of atoms. \\
