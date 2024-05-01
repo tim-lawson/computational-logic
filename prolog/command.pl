@@ -23,8 +23,6 @@
 % @param -Output The generated output.
 % @param +Words The list of atoms.
 %
-command(goal(true, 'I can reason logically.')) -->
-  [what, can, you, do].
 
 % Remove a known fact.
 command(goal(retractall(utils:known_fact(Fact)), 'I forgot that.')) -->
