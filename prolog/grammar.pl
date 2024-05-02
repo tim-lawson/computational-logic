@@ -24,9 +24,8 @@ negation(negation(X)) :- X.
 
 %% predicate(-Predicate:atom, -Arity:integer, -Words:list)
 %
-% The predicate/3 predicate defines the logical vocabulary of the system. It relates a
-% predicate, its arity, and a list of words and syntactic categories that refer to the
-% logical entity.
+% The predicate/3 predicate defines the logical vocabulary of the system.
+% It relates a predicate, its arity, and a list of words and syntactic categories that refer to the logical entity.
 %
 % @param Predicate The predicate.
 % @param Arity The number of arguments the predicate takes.
@@ -62,8 +61,8 @@ predicate(penguin, 1, [noun/penguin]).
 
 %% proper_noun(?Number:atom, ?Word:atom)//
 %
-% The proper_noun//2 DCG rule defines proper nouns. It relates the proper noun's
-% grammatical number, its atom, and a list of atoms that refer to it.
+% The proper_noun//2 DCG rule defines proper nouns.
+% It relates the proper noun's grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
 % @param Word The proper noun.
@@ -76,8 +75,8 @@ proper_noun(singular, pixie) --> [pixie].
 
 %% verb_phrase(?Number:atom, ?Word:atom)//
 %
-% The verb_phrase//2 DCG rule defines verb phrases. It relates the verb phrase's
-% grammatical number, its atom, and a list of atoms that refer to it.
+% The verb_phrase//2 DCG rule defines verb phrases.
+% It relates the verb phrase's grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
 % @param Word The property or verb.
@@ -115,8 +114,8 @@ conjunction(Number, X => (Literal, Rest)) --> property(Number, X => Literal), co
 
 %% property(?Number:atom, ?Word:atom)//
 %
-% The property//2 DCG rule defines properties. It relates the property's grammatical
-% number, its atom, and a list of atoms that refer to it.
+% The property//2 DCG rule defines properties.
+% It relates the property's grammatical number, its atom, and a list of atoms that refer to it.
 %
 % @param Number The grammatical number.
 % @param Word The adjective or noun.
@@ -129,10 +128,10 @@ property(singular, negation(Noun)) --> [not, a], noun(singular, Noun).
 property(plural, Noun) --> noun(plural, Noun).
 property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 
-%% determiner(?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable)//
+%% determiner(?Number:atom, ?Body:atom, ?Head:atom, ?Rule:atom)//
 %
-% The determiner//4 DCG rule defines determiners. It relates the determiner's
-% grammatical number, its corresponding rule, and a list of atoms that refer to it.
+% The determiner//4 DCG rule defines determiners.
+% It relates the determiner's grammatical number, its corresponding rule, and a list of atoms that refer to it.
 %
 % @param ?Number The grammatical number.
 % @param ?Body The relation between X and the body of the rule.
@@ -140,7 +139,7 @@ property(plural, negation(Noun)) --> [not], noun(plural, Noun).
 % @param ?Rule The rule.
 %
 
-% NOTE: The first option is the one picked when generating answers
+% Note: The first option is used when generating an answer.
 % If the determiner is like "all", then the body of the rule implies the head.
 determiner(singular, 1, proper) --> [].
 determiner(plural, 1, proper) --> [].
@@ -162,7 +161,7 @@ determiner(singular, 0.5, proper) --> [it, could, be, that].
 % The adjective//1 DCG rule defines adjectives.
 % It relates the adjective and its literal.
 %
-% @param ?ToLiteral The adjective and its literal in the form Noun => Adjective(Noun).
+% @param ?ToLiteral The adjective and its literal in the form `Noun => Adjective(Noun)`.
 %
 adjective(ToLiteral) -->
   [Adjective],
@@ -255,13 +254,12 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
 
 % --- Logic ---
 
-%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:callable)
+%% predicate_to_grammar(+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:atom)
 %
-% The predicate_to_grammar/4 predicate constructs a literal from a predicate and an
-% argument.
+% The predicate_to_grammar/4 predicate constructs a literal from a predicate and an argument.
 %
 % @param Predicate The predicate.
-% @param Arity The number of arguments the predicate takes.
+% @param Arity The number of predicate arguments.
 % @param WordCategory The word category.
 % @param ToLiteral The word and its literal.
 %

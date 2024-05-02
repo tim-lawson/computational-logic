@@ -57,13 +57,13 @@ It tries to prove the question and/or its negation with the question-answering e
 
 \begin{description}
     \dcg[private]{command}{3}{-Goal:atom, -Output:string, +Words:list}
-The \dcgref{command}{3} DCG rule parses a list of atoms into a goal to be executed by the
-engine module, and stores the generated output.
+The \dcgref{command}{3} DCG rule parses a list of atoms into a goal.
+It executes the goal with the engine module, outputs the response.
 
 \begin{arguments}
 \arg{\Sminus} & \arg{Goal} The goal to execute. \\
 \arg{\Sminus} & \arg{Output} The generated output. \\
-\arg{\Splus} & \arg{Words} The list of atoms. \\
+\arg{\Splus} & \arg{Words} The command (a list of atoms). \\
 \end{arguments}
 \end{description}
 
@@ -96,8 +96,7 @@ It is suitable for use with maplist, such as in \predref{find_known_facts_noun}{
 \end{arguments}
 
     \predicate{prove_question_tree}{2}{+Question:atom, -Output:string}
-The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that
-constructs a proof tree.
+The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that constructs a proof tree.
 If the question can be proved either way, it transforms each step of the proof into a
 sentence and concatenates the sentences into the output.
 
@@ -115,7 +114,7 @@ The proof is a list of steps, where each step is a fact that was used to prove t
 \begin{arguments}
 \arg{\Splus} & \arg{Clause}: The clause to prove. \\
 \arg{\Splus} & \arg{TruthValue}: The truth value of the clause (true or false). \\
-\arg{\Splus} & \arg{Certainty}: The accumulated certainty of the proof. \\
+\arg{\Sminus} & \arg{Certainty}: The accumulated certainty of the proof. \\
 \arg{\Splus} & \arg{FactList}: The list of facts to use. \\
 \arg{\Splus} & \arg{ProofList}: The accumulator for the proof. \\
 \arg{\Sminus} & \arg{Proof}: The generated proof.
@@ -204,9 +203,8 @@ The \predref{output_proof_list}{2} predicate transforms a question and a proof l
 
 \begin{description}
     \predicate{predicate}{3}{-Predicate:atom, -Arity:integer, -Words:list}
-The \predref{predicate}{3} predicate defines the logical vocabulary of the system. It relates a
-predicate, its arity, and a list of words and syntactic categories that refer to the
-logical entity.
+The \predref{predicate}{3} predicate defines the logical vocabulary of the system.
+It relates a predicate, its arity, and a list of words and syntactic categories that refer to the logical entity.
 
 \begin{arguments}
 \arg{Predicate} & The predicate. \\
@@ -216,8 +214,8 @@ logical entity.
 \end{arguments}
 
     \dcg[private]{proper_noun}{2}{?Number:atom, ?Word:atom}
-The \dcgref{proper_noun}{2} DCG rule defines proper nouns. It relates the proper noun's
-grammatical number, its atom, and a list of atoms that refer to it.
+The \dcgref{proper_noun}{2} DCG rule defines proper nouns.
+It relates the proper noun's grammatical number, its atom, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{Number} & The grammatical number. \\
@@ -226,8 +224,8 @@ grammatical number, its atom, and a list of atoms that refer to it.
 \end{arguments}
 
     \dcg[private]{verb_phrase}{2}{?Number:atom, ?Word:atom}
-The \dcgref{verb_phrase}{2} DCG rule defines verb phrases. It relates the verb phrase's
-grammatical number, its atom, and a list of atoms that refer to it.
+The \dcgref{verb_phrase}{2} DCG rule defines verb phrases.
+It relates the verb phrase's grammatical number, its atom, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{Number} & The grammatical number. \\
@@ -236,8 +234,8 @@ grammatical number, its atom, and a list of atoms that refer to it.
 \end{arguments}
 
     \dcg[private]{property}{2}{?Number:atom, ?Word:atom}
-The \dcgref{property}{2} DCG rule defines properties. It relates the property's grammatical
-number, its atom, and a list of atoms that refer to it.
+The \dcgref{property}{2} DCG rule defines properties.
+It relates the property's grammatical number, its atom, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{Number} & The grammatical number. \\
@@ -245,9 +243,9 @@ number, its atom, and a list of atoms that refer to it.
   \\
 \end{arguments}
 
-    \dcg[private]{determiner}{4}{?Number:atom, ?Body:callable, ?Head:callable, ?Rule:callable}
-The \dcgref{determiner}{4} DCG rule defines determiners. It relates the determiner's
-grammatical number, its corresponding rule, and a list of atoms that refer to it.
+    \dcg[private]{determiner}{4}{?Number:atom, ?Body:atom, ?Head:atom, ?Rule:atom}
+The \dcgref{determiner}{4} DCG rule defines determiners.
+It relates the determiner's grammatical number, its corresponding rule, and a list of atoms that refer to it.
 
 \begin{arguments}
 \arg{\Squest} & \arg{Number} The grammatical number. \\
@@ -262,7 +260,7 @@ The \dcgref{adjective}{1} DCG rule defines adjectives.
 It relates the adjective and its literal.
 
 \begin{arguments}
-\arg{\Squest} & \arg{ToLiteral} The adjective and its literal in the form Noun \Sssu{} Adjective(Noun).
+\arg{\Squest} & \arg{ToLiteral} The adjective and its literal in the form `Noun \Sssu{} Adjective(Noun)`.
   \\
 \end{arguments}
 
@@ -306,13 +304,12 @@ singular form and vice versa.
   \\
 \end{arguments}
 
-    \predicate{predicate_to_grammar}{4}{+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:callable}
-The \predref{predicate_to_grammar}{4} predicate constructs a literal from a predicate and an
-argument.
+    \predicate{predicate_to_grammar}{4}{+Predicate:atom, +Arity:integer, +WordCategory:atom, -ToLiteral:atom}
+The \predref{predicate_to_grammar}{4} predicate constructs a literal from a predicate and an argument.
 
 \begin{arguments}
 \arg{Predicate} & The predicate. \\
-\arg{Arity} & The number of arguments the predicate takes. \\
+\arg{Arity} & The number of predicate arguments. \\
 \arg{WordCategory} & The word category. \\
 \arg{ToLiteral} & The word and its literal.
   \\
@@ -353,11 +350,11 @@ The \dcgref{sentence}{1} DCG rule parses a list of atoms into a sentence.
 
     \dcg{sentence_body}{1}{?Sentence:list}
 The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence body.
-The operator "\Sssu{}" is used to unify two atoms in \verb$grammar.pl$, usually ToLiteral.
+The operator \verb$=>$ is used to unify two atoms in \verb$grammar.pl$, usually ToLiteral.
 This is handy because we need to pass them both through several layers of the grammar module,
-e.g., verb_phrase \Sifthen{} property \Sifthen{} adjective \Sifthen{} predicate_to_grammar.
+e.g., \dcgref{verb_phrase}{2} to \dcgref{property}{2} to \dcgref{adjective}{1} to \predref{predicate_to_grammar}{4}.
 The operator itself does not do anything special -- it could be any arithmetic operator,
-provided that it is destructured accordingly in \verb$grammar:predicate_to_grammar$.
+provided that it is destructured accordingly in \predref{predicate_to_grammar}{4}.
 
 \begin{arguments}
 \arg{Sentence} & The list of atoms. \\
