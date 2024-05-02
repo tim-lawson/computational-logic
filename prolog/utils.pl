@@ -34,6 +34,7 @@ concatenate_conjunctive(X, List, (X, List)):-
   \+ X = true,
   % X is not a conjunction itself (prevent infinite recursion).
   \+ X = (Y, Z).
+
 % Recursive case: (X, ListZ) is the conjunctive concatenation of (X, ListX) and ListY if...
 concatenate_conjunctive((X, ListX), ListY, (X, ListZ)):-
   % ListZ is the conjunctive concatenation of ListX and ListY.
@@ -65,7 +66,6 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param +Term: The term to transform.
 % @param -ClauseList: The list of clauses generated based on the term.
 %
-
 transform((Term | Certainty), [(Term :- true | Certainty)]).
 
 %% try(+X)

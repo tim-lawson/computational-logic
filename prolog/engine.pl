@@ -75,8 +75,7 @@ prove_question_list_internal(X, Output) :-
 
 %% prove_question_tree(+Question:atom, -Output:string)
 %
-% The prove_question_tree/2 predicate is an extended version of prove_question/2 that
-% constructs a proof tree.
+% The prove_question_tree/2 predicate is an extended version of prove_question/2 that constructs a proof tree.
 % If the question can be proved either way, it transforms each step of the proof into a
 % sentence and concatenates the sentences into the output.
 %
@@ -118,7 +117,7 @@ prove_question_tree_internal(X, Output) :-
 %
 % @param +Clause: The clause to prove.
 % @param +TruthValue: The truth value of the clause (true or false).
-% @param +Certainty: The accumulated certainty of the proof.
+% @param -Certainty: The accumulated certainty of the proof.
 % @param +FactList: The list of facts to use.
 % @param +ProofList: The accumulator for the proof.
 % @param -Proof: The generated proof.

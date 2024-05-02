@@ -1,7 +1,6 @@
 %% command: Command parser.
 %
-% This module parses commands and converts them into goals to be executed by the engine
-% module.
+% This module parses commands, converts them into goals, and executes them.
 %
 :- module(command, [command/3]).
 
@@ -16,12 +15,12 @@
 
 %% command(-Goal:atom, -Output:string, +Words:list)//
 %
-% The command//3 DCG rule parses a list of atoms into a goal to be executed by the
-% engine module, and stores the generated output.
+% The command//3 DCG rule parses a list of atoms into a goal.
+% It executes the goal with the engine module, outputs the response.
 %
 % @param -Goal The goal to execute.
 % @param -Output The generated output.
-% @param +Words The list of atoms.
+% @param +Words The command (a list of atoms).
 %
 
 % Remove a known fact.
