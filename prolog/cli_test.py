@@ -30,6 +30,9 @@ class Cli:
     def test_fact(self, value: str):
         self.test(value, self.Remember)
 
+    def forget_all(self):
+        self("forget everything")
+
     def __del__(self):
         assert self.process.stdin is not None
         assert self.process.stdout is not None
