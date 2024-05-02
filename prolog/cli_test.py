@@ -208,3 +208,25 @@ def test_default():
             "alice is a bird, most birds fly, therefore it is likely that alice flies",
         ),
     )
+
+
+def test_existential():
+    """Test the CLI with existential rules."""
+    cli(
+        ("alice is a genius", REMEMBER),
+        ("some geniuses win", REMEMBER),
+        ("does alice win", "it could be that alice wins"),
+        (
+            "explain why it could be that alice wins",
+            "alice is a genius, some geniuses win, therefore it could be that alice wins",
+        ),
+    )
+    cli(
+        ("some humans are geniuses", REMEMBER),
+        ("all geniuses win", REMEMBER),
+        ("do humans win", "some humans win"),
+        (
+            "explain why some humans win",
+            "some humans are geniuses, every genius wins, therefore some humans win",
+        ),
+    )

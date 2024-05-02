@@ -71,3 +71,8 @@ question_body(negation(Question)) -->
   grammar:proper_noun(_, X),
   [not],
   grammar:verb_phrase(_, X => Question).
+
+question_body(Head :- Body) -->
+  [do],
+  grammar:noun(plural, X => Body),
+  grammar:verb_phrase(_, X => Head).

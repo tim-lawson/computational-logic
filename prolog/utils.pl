@@ -66,6 +66,7 @@ find_clause(Clause, Fact, [_Fact|FactList]) :-
 % @param +Term: The term to transform.
 % @param -ClauseList: The list of clauses generated based on the term.
 %
+transform((Head :- Body | Certainty), [(Head :- Body | Certainty)]).
 transform((Term | Certainty), [(Term :- true | Certainty)]).
 
 %% try(+X)

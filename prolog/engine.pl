@@ -49,6 +49,24 @@ prove_question(Question, Output) :-
 % @param -Output: The generated output.
 %
 
+% -- Rule
+prove_question_list((Head :- Body), Output) :-
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactList),
+  (
+    % Try to prove the question is true.
+    engine:prove_from_known_facts(Head, Body, Certainty, FactList) ->
+      engine:output_answer((Head :- Body | Certainty), Output)
+  % ;
+    % % Try to prove the question is false.
+    % engine:prove_from_known_facts(Question, false, Certainty, FactList) ->
+    %   engine:output_answer((negation(Question) | Certainty), Output)
+  ;
+    % If the question cannot be proved either way, output the empty string.
+    Output = ''
+  ).
+
+
 % -- Negative
 prove_question_list(negation(Question), Output) :-
   prove_question_list_internal(Question, Output).
@@ -73,6 +91,7 @@ prove_question_list_internal(X, Output) :-
     Output = ''
   ).
 
+
 %% prove_question_tree(+Question:atom, -Output:string)
 %
 % The prove_question_tree/2 predicate is an extended version of prove_question/2 that constructs a proof tree.
@@ -82,6 +101,23 @@ prove_question_list_internal(X, Output) :-
 % @param +Question: The question to prove.
 % @param -Output: The generated output.
 %
+
+% -- Rule
+prove_question_tree((Head :- Body), Output) :-
+  % Find all known facts.
+  findall(Fact, utils:known_fact(Fact), FactList),
+  (
+    % Try to prove the question is true.
+    engine:prove_from_known_facts(Head, Body, Certainty, FactList, [], ProofList) ->
+      engine:output_proof_list((Head :- Body | Certainty), ProofList, Output)
+  % ;
+  %   % Try to prove the question is false.
+  %   engine:prove_from_known_facts(Question, false, Certainty, FactList, [], ProofList) ->
+  %     engine:output_proof_list((negation(Head) :- Body | Certainty), ProofList, Output)
+  ;
+    % If the question cannot be proved, output a default response.
+    Output = 'I do not know whether that is true or false.'
+  ).
 
 % -- Negative
 prove_question_tree(negation(Question), Output) :-
@@ -123,8 +159,8 @@ prove_question_tree_internal(X, Output) :-
 % @param -Proof: The generated proof.
 %
 
-% If the clause is true, we are done.
-prove_from_known_facts(true, _TruthValue, 1, _FactList, ProofList, ProofList) :- !.
+% Base case. The clause is the goal (with a certainty of 1).
+prove_from_known_facts(Goal, Goal, 1, _FactList, ProofList, ProofList) :- !.
 
 % -- Disjunction (positive). A disjunction is true if any of the disjuncts is true.
 prove_from_known_facts((FirstClause; OtherClauses), true, Certainty, FactList, ProofList, Proof) :-
@@ -211,6 +247,16 @@ prove_from_known_facts(Clause, false, NewCertainty, FactList, ProofList, Proof) 
   prove_from_known_facts(Body, true, Certainty, FactList, [proof(Clause, Fact)|ProofList], Proof),
   NewCertainty is min(Certainty, ClauseCertainty).
 
+% -- Implication (modus ponens) rule
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
+  debug:debug('engine', 'implication: trying to prove ~q is ~q', [Clause, Goal]),
+  % Find a clause of the form 'if Body then Clause'.
+  utils:find_clause((Clause :- Body | ClauseCertainty), Fact, FactList),
+  debug:debug('engine', 'implication: found ~q :- ~q', [Clause, Body]),
+  % Try to prove Body. If the proof succeeds, then we have proven Clause.
+  prove_from_known_facts(Body, Goal, Certainty, FactList, [proof(Clause, Fact)|ProofList], Proof),
+  NewCertainty is min(Certainty, ClauseCertainty).
+
 % -- Negation (modus tollens)
 prove_from_known_facts(Clause, false, NewCertainty, FactList, ProofList, Proof) :-
   debug:debug('engine', 'negation: trying to prove ~q is ~q', [Clause, false]),
@@ -222,7 +268,7 @@ prove_from_known_facts(Clause, false, NewCertainty, FactList, ProofList, Proof) 
   NewCertainty is min(Certainty, ClauseCertainty).
 
 % -- Disjunction (two terms)
-prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
   (
     utils:find_clause((Clause; OtherClauses :- Body | ClauseCertainty), Fact, FactList)
@@ -237,11 +283,11 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   prove_from_known_facts(Body, true, BodyCertainty, FactList, [], A),
 
   (
-    % Try to disprove all other disjuncts (TruthValue = true); or
-    TruthValue = true -> NotTruthValue = false
+    % Try to disprove all other disjuncts (Goal = true); or
+    Goal = true -> NotGoal = false
   ;
-    % ...prove at least one other disjunct is true (TruthValue = false).
-    NotTruthValue = true
+    % ...prove at least one other disjunct is true (Goal = false).
+    NotGoal = true
   ),
 
   % When trying to prove the other disjuncts, we don't want to match with this
@@ -253,9 +299,9 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
     select([(OtherClauses; Clause :- Body | _)], FactList, SubFactList)
   ),
 
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [OtherClauses, NotTruthValue, SubFactList]),
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [OtherClauses, NotGoal, SubFactList]),
 
-  prove_from_known_facts(OtherClauses, NotTruthValue, Certainty, SubFactList, [], B),
+  prove_from_known_facts(OtherClauses, NotGoal, Certainty, SubFactList, [], B),
 
   Z is min(ClauseCertainty, BodyCertainty),
   NewCertainty is min(Certainty, Z),
@@ -268,7 +314,7 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   debug:debug('engine', 'disjunction: proved ~q', [Clause]).
 
 % -- Disjunction (at least two terms)
-prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
   utils:find_clause((ClausesBefore; Clause; ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
 
@@ -279,11 +325,11 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   prove_from_known_facts(Body, true, BodyCertainty, FactList, [], A),
 
   (
-    % Try to disprove all other disjuncts (TruthValue = true); or
-    TruthValue = true -> NotTruthValue = false
+    % Try to disprove all other disjuncts (Goal = true); or
+    Goal = true -> NotGoal = false
   ;
-    % ...prove at least one other disjunct is true (TruthValue = false).
-    NotTruthValue = true
+    % ...prove at least one other disjunct is true (Goal = false).
+    NotGoal = true
   ),
 
   % When trying to prove the other disjuncts, we don't want to match with this
@@ -291,10 +337,10 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   % from the fact list when trying to prove the other disjuncts.
   select([(ClausesBefore; Clause; ClausesAfter :- Body | _)], FactList, SubFactList),
 
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesBefore, NotTruthValue, SubFactList]),
-  prove_from_known_facts(ClausesBefore, NotTruthValue, Certainty, SubFactList, [], B),
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesAfter, NotTruthValue, SubFactList]),
-  prove_from_known_facts(ClausesAfter, NotTruthValue, Certainty, SubFactList, [], C),
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesBefore, NotGoal, SubFactList]),
+  prove_from_known_facts(ClausesBefore, NotGoal, Certainty, SubFactList, [], B),
+  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesAfter, NotGoal, SubFactList]),
+  prove_from_known_facts(ClausesAfter, NotGoal, Certainty, SubFactList, [], C),
 
   Z is min(ClauseCertainty, BodyCertainty),
   NewCertainty is min(Certainty, Z),
@@ -308,7 +354,7 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   debug:debug('engine', 'disjunction: proved ~q', [Clause]).
 
 % -- Conjunction (two terms only)
-prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
   (
     utils:find_clause((Clause, OtherClauses :- Body | ClauseCertainty), Fact, FactList)
@@ -319,7 +365,7 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   debug:debug('engine', 'conjunction: found ~q :- ~q', [(Clause, OtherClauses), Body]),
 
   % Try to prove Body is true. If the proof succeeds, then the conjunct is true.
-  prove_from_known_facts(Body, TruthValue, BodyCertainty, FactList, [], BodyProof),
+  prove_from_known_facts(Body, Goal, BodyCertainty, FactList, [], BodyProof),
 
   NewCertainty is min(ClauseCertainty, BodyCertainty),
 
@@ -330,14 +376,14 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
   debug:debug('engine', 'conjunction: proved ~q', [Clause]).
 
 % -- Conjunction (at least two terms)
-prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Proof) :-
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
   utils:find_clause((ClausesBefore, Clause, ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
 
   debug:debug('engine', 'conjunction: found ~q :- ~q', [(ClausesBefore, Clause, ClausesAfter), Body]),
 
   % Try to prove Body is true. If the proof succeeds, then one and only one of the disjuncts is true.
-  prove_from_known_facts(Body, TruthValue, BodyCertainty, FactList, [], BodyProof),
+  prove_from_known_facts(Body, Goal, BodyCertainty, FactList, [], BodyProof),
 
   NewCertainty is min(ClauseCertainty, BodyCertainty),
 
@@ -347,17 +393,17 @@ prove_from_known_facts(Clause, TruthValue, NewCertainty, FactList, ProofList, Pr
 
   debug:debug('engine', 'conjunction: proved ~q', [Clause]).
 
-% prove_from_known_facts(+Clause:atom, +TruthValue:atom, +FactList:list)
+% prove_from_known_facts(+Clause:atom, +Goal:atom, +FactList:list)
 
 % The prove_from_known_facts/2 predicate also tries to prove a clause, but it does not
 % store the proof, i.e. only the answer is needed.
 
 % @param +Clause: The clause to prove.
-% @param +TruthValue: The truth value of the clause (true or false).
+% @param +Goal: The truth value of the clause (true or false) or another term e.g mortal(X).
 % @param +FactList: The list of facts to use.
 
-prove_from_known_facts(Clause, TruthValue, Certainty, FactList) :-
-  prove_from_known_facts(Clause, TruthValue, Certainty, FactList, [], _Proof).
+prove_from_known_facts(Clause, Goal, Certainty, FactList) :-
+  prove_from_known_facts(Clause, Goal, Certainty, FactList, [], _Proof).
 
 % --- Commands ---
 
@@ -505,6 +551,19 @@ output_proof(proof(_Clause, Fact), Output):-
 % @param +ProofList: The proof list.
 % @param -Output: The generated output.
 %
+output_proof_list((Head :- Body | Certainty), ProofList, Output) :-
+  % Transform each step of the proof into a sentence.
+  maplist(engine:output_proof, ProofList, OutputListProof),
+  % Transform the question into a clause.
+  phrase(sentence:sentence_body([(Head :- Body | Certainty)]), Clause),
+  % Transform the clause into a sentence.
+  atomic_list_concat([therefore|Clause], ' ', Sentence),
+  % Append the sentence to the output.
+  append(OutputListProof, [Sentence], OutputList),
+  % Transform the sentences into strings.
+  atomic_list_concat(OutputList, ', ', Output).
+
+
 output_proof_list((Question | Certainty), ProofList, Output) :-
   % Transform each step of the proof into a sentence.
   maplist(engine:output_proof, ProofList, OutputListProof),
