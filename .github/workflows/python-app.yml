@@ -1,4 +1,4 @@
-name: Command-line interface
+name: Test CLI
 
 on:
   push:
@@ -22,8 +22,7 @@ jobs:
         swi-prolog-version: latest
     - name: Compile program
       run: |
-        cd prolog
-        swipl --goal=cli -o cli -c cli.pl
+        swipl --goal=cli -o prolog/cli -c prolog/cli.pl
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
