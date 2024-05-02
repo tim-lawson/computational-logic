@@ -1,6 +1,10 @@
 # pylint: disable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 
+import os
 import subprocess
+
+
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cli")
 
 
 class Cli:
@@ -8,7 +12,7 @@ class Cli:
 
     def __init__(self):
         self.process = subprocess.Popen(
-            ["./cli"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
+            [path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True
         )
 
     def __call__(self, value: str):
