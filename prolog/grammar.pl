@@ -34,7 +34,6 @@ negation(negation(X)) :- X.
 
 predicate(human, 1, [adj/human, noun/human]).
 predicate(mortal, 1, [adj/mortal, noun/mortal]).
-predicate(genius, 1, [adj/genius, noun/genius]).
 
 predicate(bird, 1, [noun/bird]).
 predicate(penguin, 1, [noun/penguin]).
@@ -52,10 +51,8 @@ predicate(coin, 1, [noun/coin]).
 predicate(heads, 1, [adj/heads]).
 predicate(tails, 1, [adj/tails]).
 
-predicate(prize, 1, [noun/prize]).
-predicate(win_prizes, 1, [verb/win_prizes]).
-
-predicate(penguin, 1, [noun/penguin]).
+predicate(genius, 1, [noun/genius]).
+predicate(win, 1, [verb/win]).
 
 % --- Vocabulary and grammar ---
 
@@ -248,7 +245,6 @@ verb_plural_to_singular(PluralVerb, SingularVerb) :-
   (
     % Irregular forms
     PluralVerb = fly -> SingularVerb = flies;
-    PluralVerb = wins_prizes -> SingularVerb = win_prizes;
     % Regular forms
     atom_concat(PluralVerb, s, SingularVerb)
   ).

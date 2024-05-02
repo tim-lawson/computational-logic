@@ -213,11 +213,20 @@ def test_default():
 def test_existential():
     """Test the CLI with existential rules."""
     cli(
-        ("some humans are geniuses", REMEMBER),
-        ("all geniuses win_prizes", REMEMBER),
-        ("do humans win_prizes", "some humans win_prizes"),
+        ("alice is a genius", REMEMBER),
+        ("some geniuses win", REMEMBER),
+        ("does alice win", "it could be that alice wins"),
         (
-            "explain why some humans win_prizes",
-            "some humans are genius, every genius wins_prizes, therefore some humans win_prizes",
+            "explain why it could be that alice wins",
+            "alice is a genius, some geniuses win, therefore it could be that alice wins",
+        ),
+    )
+    cli(
+        ("some humans are geniuses", REMEMBER),
+        ("all geniuses win", REMEMBER),
+        ("do humans win", "some humans win"),
+        (
+            "explain why some humans win",
+            "some humans are geniuses, every genius wins, therefore some humans win",
         ),
     )
