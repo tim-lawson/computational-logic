@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
     - name: Install SWI-Prolog backend
       uses: logtalk-actions/setup-swi-prolog@master
       with:
@@ -23,7 +24,6 @@ jobs:
     - name: Compile program
       run: |
         swipl --goal=cli -o prolog/cli -c prolog/cli.pl
-    - uses: actions/checkout@v4
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
