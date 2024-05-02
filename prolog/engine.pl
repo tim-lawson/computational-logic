@@ -267,20 +267,26 @@ prove_from_known_facts(Clause, false, NewCertainty, FactList, ProofList, Proof) 
   prove_from_known_facts(negation(Head), true, Certainty, FactList, [proof(negation(Clause), Fact)|ProofList], Proof),
   NewCertainty is min(Certainty, ClauseCertainty).
 
-% -- Disjunction (two terms)
-prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
-  % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
-  (
-    utils:find_clause((Clause; OtherClauses :- Body | ClauseCertainty), Fact, FactList)
-  ;
-    utils:find_clause((OtherClauses; Clause :- Body | ClauseCertainty), Fact, FactList)
-  ),
 
-  debug:debug('engine', 'disjunction: found ~q :- ~q', [(Clause; OtherClauses), Body]),
+% -- Disjunction 
+prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
+  % Find a clause of the form 'clause1; clause2...'
+  utils:find_clause((FirstClause; ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
+  
+  debug:debug('engine', 'disjunction: trying to find ~q in ~q :- ~q', [Clause, (FirstClause; ClausesAfter), Body]),
+  % Convert the (nested) disjuncts to a list and check the clause is one using member/2.
+  utils:list_of_disjuncts((FirstClause; ClausesAfter), Disjuncts),
+  member(Clause, Disjuncts),
+
+  % Convert the other disjuncts back to a disjunctive clause so we can try to prove them.
+  select(Clause, Disjuncts, OtherDisjuncts),
+  utils:list_of_disjuncts(OtherClauses, OtherDisjuncts),
+
+  debug:debug('engine', 'disjunction: found ~q :- ~q', [(FirstClause; ClausesAfter), Body]),
 
   % Try to prove Body is true. If the proof succeeds, then we know one and only one of
   % the disjuncts is true.
-  prove_from_known_facts(Body, true, BodyCertainty, FactList, [], A),
+  prove_from_known_facts(Body, true, BodyCertainty, FactList, [], BodyProof),
 
   (
     % Try to disprove all other disjuncts (Goal = true); or
@@ -293,94 +299,32 @@ prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :
   % When trying to prove the other disjuncts, we don't want to match with this
   % disjunction or the program will enter an infinite loop. So we remove this disjunction
   % from the fact list when trying to prove the other disjuncts.
-  (
-    select([(Clause; OtherClauses :- Body | _)], FactList, SubFactList)
-  ;
-    select([(OtherClauses; Clause :- Body | _)], FactList, SubFactList)
-  ),
+  select([(FirstClause; ClausesAfter :- Body | _)], FactList, SubFactList),
 
   debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [OtherClauses, NotGoal, SubFactList]),
-
-  prove_from_known_facts(OtherClauses, NotGoal, Certainty, SubFactList, [], B),
-
-  Z is min(ClauseCertainty, BodyCertainty),
-  NewCertainty is min(Certainty, Z),
-
-  % Concatenate the proofs of the Body, negation(Other), and Clause.
-  append(A, B, C),
-  append(C, ProofList, D),
-  Proof = [proof(Clause, Fact)|D],
-
-  debug:debug('engine', 'disjunction: proved ~q', [Clause]).
-
-% -- Disjunction (at least two terms)
-prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
-  % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
-  utils:find_clause((ClausesBefore; Clause; ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
-
-  debug:debug('engine', 'disjunction: found ~q :- ~q', [(Clause; ClausesBefore; ClausesAfter), Body]),
-
-  % Try to prove Body is true. If the proof succeeds, then we know one and only one of
-  % the disjuncts is true.
-  prove_from_known_facts(Body, true, BodyCertainty, FactList, [], A),
-
-  (
-    % Try to disprove all other disjuncts (Goal = true); or
-    Goal = true -> NotGoal = false
-  ;
-    % ...prove at least one other disjunct is true (Goal = false).
-    NotGoal = true
-  ),
-
-  % When trying to prove the other disjuncts, we don't want to match with this
-  % disjunction or the program will enter an infinite loop. So we remove this disjunction
-  % from the fact list when trying to prove the other disjuncts.
-  select([(ClausesBefore; Clause; ClausesAfter :- Body | _)], FactList, SubFactList),
-
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesBefore, NotGoal, SubFactList]),
-  prove_from_known_facts(ClausesBefore, NotGoal, Certainty, SubFactList, [], B),
-  debug:debug('engine', 'disjunction: trying to prove ~q is ~q from ~q', [ClausesAfter, NotGoal, SubFactList]),
-  prove_from_known_facts(ClausesAfter, NotGoal, Certainty, SubFactList, [], C),
+  prove_from_known_facts(OtherClauses, NotGoal, Certainty, SubFactList, [], OtherClauseProofs),
 
   Z is min(ClauseCertainty, BodyCertainty),
   NewCertainty is min(Certainty, Z),
 
   % Concatenate the proofs of the Body, negation(Other), and Clause.
-  append(A, B, AB),
-  append(AB, C, ABC),
-  append(ABC, ProofList, D),
-  Proof = [proof(Clause, Fact)|D],
+  append(BodyProof, OtherClauseProofs, DisjProof),
+  append(DisjProof, ProofList, NewProofList),
+  Proof = [proof(Clause, Fact)|NewProofList],
 
   debug:debug('engine', 'disjunction: proved ~q', [Clause]).
 
-% -- Conjunction (two terms only)
+
+% -- Conjunction
 prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
-  (
-    utils:find_clause((Clause, OtherClauses :- Body | ClauseCertainty), Fact, FactList)
-  ;
-    utils:find_clause((OtherClauses, Clause :- Body | ClauseCertainty), Fact, FactList)
-  ),
+  utils:find_clause((FirstClause, ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
 
-  debug:debug('engine', 'conjunction: found ~q :- ~q', [(Clause, OtherClauses), Body]),
+  % Convert the (nested) conjuncts to a list and check the clause is one using member/2.
+  utils:list_of_conjuncts((FirstClause, ClausesAfter), Conjuncts),
+  member(Clause, Conjuncts),
 
-  % Try to prove Body is true. If the proof succeeds, then the conjunct is true.
-  prove_from_known_facts(Body, Goal, BodyCertainty, FactList, [], BodyProof),
-
-  NewCertainty is min(ClauseCertainty, BodyCertainty),
-
-  % Concatenate the proofs of the Body, and Clause.
-  append(BodyProof, ProofList, A),
-  Proof = [proof(Clause, Fact)|A],
-
-  debug:debug('engine', 'conjunction: proved ~q', [Clause]).
-
-% -- Conjunction (at least two terms)
-prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
-  % Find a clause of the form 'if Body then *one* of several things including Clause is true'.
-  utils:find_clause((ClausesBefore, Clause, ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
-
-  debug:debug('engine', 'conjunction: found ~q :- ~q', [(ClausesBefore, Clause, ClausesAfter), Body]),
+  debug:debug('engine', 'conjunction: found ~q :- ~q', [(FirstClause, ClausesAfter), Body]),
 
   % Try to prove Body is true. If the proof succeeds, then one and only one of the disjuncts is true.
   prove_from_known_facts(Body, Goal, BodyCertainty, FactList, [], BodyProof),

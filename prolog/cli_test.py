@@ -149,12 +149,11 @@ def test_disjunction_three():
     cli.test_fact("pixie is not red")
     cli.test_fact("pixie is not green")
 
-    # TODO
-    # cli.test("is pixie blue", "pixie is blue")
-    # cli.test(
-    #     "explain why pixie is blue",
-    #     "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not green, therefore pixie is blue",
-    # )
+    cli.test("is pixie blue", "pixie is blue")
+    cli.test(
+        "explain why pixie is blue",
+        "every pixel is red is green or is blue, pixie is a pixel, pixie is not red, pixie is not green, therefore pixie is blue",
+    )
 
 
 def test_disjunctive_questions():
