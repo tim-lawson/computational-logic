@@ -2,7 +2,7 @@
 %
 % This module provides useful operators and predicates.
 %
-:- module(utils, [concatenate_conjunctive/3, known_fact/1, try/1]).
+:- module(utils, [list_of_disjunts/2, concatenate_conjunctive/3, known_fact/1, try/1]).
 
 % This predicate warns on variables that appear once in a clause that don't start with an underscore.
 :-style_check(-singleton).
@@ -16,6 +16,9 @@ debug_enabled(on).
 
 % Store known facts.
 :- dynamic known_fact/1.
+
+list_of_disjunts((X; Y), [X | Rest]) :- list_of_disjunts(Y, Rest), !.
+list_of_disjunts(Clause, [Clause]).
 
 %% concatenate_conjunctive(+ListX:list, +ListY:list, -ListZ:list)
 %
