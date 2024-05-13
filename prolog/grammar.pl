@@ -158,7 +158,7 @@ determiner(singular, 0.5, proper) --> [it, could, be, that].
 % The adjective//1 DCG rule defines adjectives.
 % It relates the adjective and its literal.
 %
-% @param ?ToLiteral The adjective and its literal in the form `Noun => Adjective(Noun)`.
+% @param ?ToLiteral The adjective and its literal in the form Noun => Adjective(Noun).
 %
 adjective(ToLiteral) -->
   [Adjective],

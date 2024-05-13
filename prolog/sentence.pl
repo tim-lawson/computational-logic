@@ -27,7 +27,7 @@ sentence_word --> [that].
 %% sentence_body(?Sentence:list)//
 %
 % The sentence_body//1 DCG rule parses a list of atoms into a sentence body.
-% The operator `=>` is used to unify two atoms in `grammar.pl`, usually ToLiteral.
+% The operator `=>` is used to unify two atoms in `grammar.pl`, usually `ToLiteral'.
 % This is handy because we need to pass them both through several layers of the grammar module,
 % e.g., verb_phrase//2 to property//2 to adjective//1 to predicate_to_grammar/4.
 % The operator itself does not do anything special -- it could be any arithmetic operator,

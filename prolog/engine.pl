@@ -22,7 +22,7 @@ negation(negation(X)) :- X.
 %% prove_question(+Question:atom, -Output:string)
 %
 % The prove_question/2 predicate tries to prove a question from the known facts.
-% If the question can be proved either way, it outputs the answer.
+% If the question can be proved to be either true or false, it outputs the answer.
 % Otherwise, it outputs a default response.
 %
 % @param +Question: The question to prove.
@@ -31,7 +31,7 @@ negation(negation(X)) :- X.
 prove_question(Question, Output) :-
   prove_question_list(Question, MaybeEmpty),
   (
-    % If the question can be proved either way, output the answer.
+    % If the question can be proved to be either true or false, output the answer.
     MaybeEmpty \= '' -> Output = MaybeEmpty
   ;
     % Otherwise, output a default response.
@@ -41,7 +41,7 @@ prove_question(Question, Output) :-
 %% prove_question_list(+Question:atom, -Output:string)
 %
 % The prove_question_list/2 predicate tries to prove a question from the known facts.
-% If the question can be proved either way, it outputs the answer.
+% If the question can be proved to be either true or false, it outputs the answer.
 % Otherwise, it outputs the empty string.
 % It is suitable for use with maplist, such as in find_known_facts_noun/2.
 %
@@ -57,12 +57,8 @@ prove_question_list((Head :- Body), Output) :-
     % Try to prove the question is true.
     engine:prove_from_known_facts(Head, Body, Certainty, FactList) ->
       engine:output_answer((Head :- Body | Certainty), Output)
-  % ;
-    % % Try to prove the question is false.
-    % engine:prove_from_known_facts(Question, false, Certainty, FactList) ->
-    %   engine:output_answer((negation(Question) | Certainty), Output)
   ;
-    % If the question cannot be proved either way, output the empty string.
+    % If the question cannot be proved to be either true or false, output the empty string.
     Output = ''
   ).
 
@@ -87,7 +83,7 @@ prove_question_list_internal(X, Output) :-
     engine:prove_from_known_facts(X, false, Certainty, FactList) ->
       engine:output_answer((negation(X) | Certainty), Output)
   ;
-    % If X cannot be proved either way, output the empty string.
+    % If X cannot be proved to be either true or false, output the empty string.
     Output = ''
   ).
 
@@ -95,7 +91,7 @@ prove_question_list_internal(X, Output) :-
 %% prove_question_tree(+Question:atom, -Output:string)
 %
 % The prove_question_tree/2 predicate is an extended version of prove_question/2 that constructs a proof tree.
-% If the question can be proved either way, it transforms each step of the proof into a
+% If the question can be proved to be either true or false, it transforms each step of the proof into a
 % sentence and concatenates the sentences into the output.
 %
 % @param +Question: The question to prove.
@@ -110,10 +106,6 @@ prove_question_tree((Head :- Body), Output) :-
     % Try to prove the question is true.
     engine:prove_from_known_facts(Head, Body, Certainty, FactList, [], ProofList) ->
       engine:output_proof_list((Head :- Body | Certainty), ProofList, Output)
-  % ;
-  %   % Try to prove the question is false.
-  %   engine:prove_from_known_facts(Question, false, Certainty, FactList, [], ProofList) ->
-  %     engine:output_proof_list((negation(Head) :- Body | Certainty), ProofList, Output)
   ;
     % If the question cannot be proved, output a default response.
     Output = 'I do not know whether that is true or false.'
@@ -145,7 +137,7 @@ prove_question_tree_internal(X, Output) :-
 
 % --- Meta-interpreter ---
 
-%% prove_from_known_facts(+Clause:atom, +TruthValue:atom, -Certainty:int, +FactList:list, -ProofList:list, -Proof:atom)
+%% prove_from_known_facts(+Clause:atom, +TruthValue:atom, -Certainty:integer, +FactList:list, -ProofList:list, -Proof:atom)
 %
 % The prove_from_known_facts/4 predicate tries to prove a clause based on a list of facts.
 % If the clause can be proved, it stores the proof in the output.
@@ -268,11 +260,11 @@ prove_from_known_facts(Clause, false, NewCertainty, FactList, ProofList, Proof) 
   NewCertainty is min(Certainty, ClauseCertainty).
 
 
-% -- Disjunction 
+% -- Disjunction
 prove_from_known_facts(Clause, Goal, NewCertainty, FactList, ProofList, Proof) :-
   % Find a clause of the form 'clause1; clause2...'
   utils:find_clause((FirstClause; ClausesAfter :- Body | ClauseCertainty), Fact, FactList),
-  
+
   debug:debug('engine', 'disjunction: trying to find ~q in ~q :- ~q', [Clause, (FirstClause; ClausesAfter), Body]),
   % Convert the (nested) disjuncts to a list and check the clause is one using member/2.
   utils:list_of_disjuncts((FirstClause; ClausesAfter), Disjuncts),

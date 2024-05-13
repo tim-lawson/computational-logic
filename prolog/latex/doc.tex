@@ -58,7 +58,7 @@ It tries to prove the question and/or its negation with the question-answering e
 \begin{description}
     \dcg[private]{command}{3}{-Goal:atom, -Output:string, +Words:list}
 The \dcgref{command}{3} DCG rule parses a list of atoms into a goal.
-It executes the goal with the engine module, outputs the response.
+It executes the goal with the engine module and outputs the response.
 
 \begin{arguments}
 \arg{\Sminus} & \arg{Goal} The goal to execute. \\
@@ -74,7 +74,7 @@ It executes the goal with the engine module, outputs the response.
 \begin{description}
     \predicate{prove_question}{2}{+Question:atom, -Output:string}
 The \predref{prove_question}{2} predicate tries to prove a question from the known facts.
-If the question can be proved either way, it outputs the answer.
+If the question can be proved to be either true or false, it outputs the answer.
 Otherwise, it outputs a default response.
 
 \begin{arguments}
@@ -85,7 +85,7 @@ Otherwise, it outputs a default response.
 
     \predicate{prove_question_list}{2}{+Question:atom, -Output:string}
 The \predref{prove_question_list}{2} predicate tries to prove a question from the known facts.
-If the question can be proved either way, it outputs the answer.
+If the question can be proved to be either true or false, it outputs the answer.
 Otherwise, it outputs the empty string.
 It is suitable for use with maplist, such as in \predref{find_known_facts_noun}{2}.
 
@@ -97,7 +97,7 @@ It is suitable for use with maplist, such as in \predref{find_known_facts_noun}{
 
     \predicate{prove_question_tree}{2}{+Question:atom, -Output:string}
 The \predref{prove_question_tree}{2} predicate is an extended version of \predref{prove_question}{2} that constructs a proof tree.
-If the question can be proved either way, it transforms each step of the proof into a
+If the question can be proved to be either true or false, it transforms each step of the proof into a
 sentence and concatenates the sentences into the output.
 
 \begin{arguments}
@@ -106,7 +106,7 @@ sentence and concatenates the sentences into the output.
   \\
 \end{arguments}
 
-    \predicate[private]{prove_from_known_facts}{6}{+Clause:atom, +TruthValue:atom, -Certainty:int, +FactList:list, -ProofList:list, -Proof:atom}
+    \predicate[private]{prove_from_known_facts}{6}{+Clause:atom, +TruthValue:atom, -Certainty:integer, +FactList:list, -ProofList:list, -Proof:atom}
 The \predref{prove_from_known_facts}{4} predicate tries to prove a clause based on a list of facts.
 If the clause can be proved, it stores the proof in the output.
 The proof is a list of steps, where each step is a fact that was used to prove the clause.
@@ -260,7 +260,7 @@ The \dcgref{adjective}{1} DCG rule defines adjectives.
 It relates the adjective and its literal.
 
 \begin{arguments}
-\arg{\Squest} & \arg{ToLiteral} The adjective and its literal in the form `Noun \Sssu{} Adjective(Noun)`.
+\arg{\Squest} & \arg{ToLiteral} The adjective and its literal in the form Noun \Sssu{} Adjective(Noun).
   \\
 \end{arguments}
 
@@ -350,7 +350,7 @@ The \dcgref{sentence}{1} DCG rule parses a list of atoms into a sentence.
 
     \dcg{sentence_body}{1}{?Sentence:list}
 The \dcgref{sentence_body}{1} DCG rule parses a list of atoms into a sentence body.
-The operator \verb$=>$ is used to unify two atoms in \verb$grammar.pl$, usually ToLiteral.
+The operator \verb$=>$ is used to unify two atoms in \verb$grammar.pl$, usually `ToLiteral'.
 This is handy because we need to pass them both through several layers of the grammar module,
 e.g., \dcgref{verb_phrase}{2} to \dcgref{property}{2} to \dcgref{adjective}{1} to \predref{predicate_to_grammar}{4}.
 The operator itself does not do anything special -- it could be any arithmetic operator,

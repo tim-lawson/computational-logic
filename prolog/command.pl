@@ -16,7 +16,7 @@
 %% command(-Goal:atom, -Output:string, +Words:list)//
 %
 % The command//3 DCG rule parses a list of atoms into a goal.
-% It executes the goal with the engine module, outputs the response.
+% It executes the goal with the engine module and outputs the response.
 %
 % @param -Goal The goal to execute.
 % @param -Output The generated output.
